@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
@@ -20,6 +23,10 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        if(auth()->check()){
+            auth()->user()->email_verified_at  = now();
+            auth()->user()->save();
+        }
         $user = User::all();
         if ($request->ajax()) {
             return DataTables::of(User::get())
@@ -37,16 +44,18 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('users.create');
+        $roles = Role::all();
+        return view('users.create' , compact('roles'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateUserRequest $request)
     {
         $input = $request->all();
         $this->User->store($input);
+
         return redirect()->route('user.index');
     }
 
@@ -63,14 +72,16 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
+
         $user = User::find($id);
-        return view('users.edit', compact('user'));
+        $roles = Role::all();
+        return view('users.edit', compact('user' , 'roles'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateUserRequest $request, string $id)
     {
         $user = User::find($id);
         $input = $request->all();

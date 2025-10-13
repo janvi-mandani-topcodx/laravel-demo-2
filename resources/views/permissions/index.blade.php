@@ -7,26 +7,21 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col col-12 text-center">
-                                <h2 class="">Users</h2>
+                                <h2 class="">Permissions</h2>
                             </div>
                         </div>
                         <div class="d-flex justify-content-end my-3">
                             <div class="col-xs-8 text-right w-66 p-0">
-                                <a href="{{route('user.create')}}" class="btn btn-sm btn-primary" id="createUserDemo">Create New</a>
+                                <a href="{{route('permission.create')}}" class="btn btn-sm btn-primary" id="createPermission">Create New</a>
                             </div>
                         </div>
                     </div>
                     <div class="panel-body table-responsive">
-                        <table class="table table-hover" id="userDemoContainer">
+                        <table class="table table-hover" id="PermissionController">
                             <thead>
                             <tr>
                                 <th>Id</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Email</th>
-                                <th>Hobbies</th>
-                                <th>Phone Number</th>
-                                <th>Gender</th>
+                                <th>Name</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
@@ -42,7 +37,7 @@
 @endsection
 
 @section('scripts')
-    @include('users.templates')
+    @include('permissions.templates')
 
     <script>
         $(document).ready(function () {
@@ -53,36 +48,25 @@
                 }
             });
 
-            let table = new DataTable('#userDemoContainer', {
+            let table = new DataTable('#PermissionController', {
                 deferRender: true,
                 scroller: false,
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: "{{ route('user.index') }}",
+                    url: "{{ route('permission.index') }}",
                 },
-                columnDefs: [
-                    {
-                        targets: [1,2,3,4,5,6],
-                        searchable: true,
-                    }
-                ],
                 columns: [
                     { data: 'id', name: 'id' },
                     {
                         data: function (row){
-                            return  '<a href="'+ route('user.show' , row.id)+'" data-id="'+ row.id +'">'+ row.first_name +'</a>';
+                            return  '<a href="'+ route('permission.show' , row.id)+'" data-id="'+ row.id +'">'+ row.name +'</a>';
                         },
                         name: 'first name'
                     },
-                    { data: 'last_name', name: 'last name' },
-                    { data: 'email', name: 'email' },
-                    { data: 'hobbies', name: 'hobbies' },
-                    { data: 'phone_number', name: 'phone number' , type: 'string'},
-                    { data: 'gender', name: 'gender' },
                     {
                         data: function (row) {
-                            let url = route('user.edit' , row.id );
+                            let url = route('permission.edit' , row.id );
                             let data = [{
                                 'id': row.id,
                                 'url': url,
@@ -100,11 +84,11 @@
             });
 
 
-            $(document).on('click', '#delete-users', function () {
-                let userId = $(this).data('id');
+            $(document).on('click', '#deletePermission', function () {
+                let permissionId = $(this).data('id');
 
                 $.ajax({
-                    url: route('user.destroy' , userId),
+                    url: route('permission.destroy' , permissionId),
                     type: "DELETE",
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')
