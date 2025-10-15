@@ -7,26 +7,23 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col col-12 text-center">
-                                <h2 class="">Users</h2>
+                                <h2 class="">Products</h2>
                             </div>
                         </div>
                         <div class="d-flex justify-content-end my-3">
                             <div class="col-xs-8 text-right w-66 p-0">
-                                <a href="{{route('user.create')}}" class="btn btn-sm btn-primary" id="createUserDemo">Create New</a>
+                                <a href="{{route('product.create')}}" class="btn btn-sm btn-primary" id="create">Create New</a>
                             </div>
                         </div>
                     </div>
                     <div class="panel-body table-responsive">
-                        <table class="table table-hover" id="userDemoContainer">
+                        <table class="table table-hover" id="productContainer">
                             <thead>
                             <tr>
                                 <th>Id</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Email</th>
-                                <th>Hobbies</th>
-                                <th>Phone Number</th>
-                                <th>Gender</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>status</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
@@ -42,7 +39,7 @@
 @endsection
 
 @section('scripts')
-    @include('users.templates')
+    @include('products.templates')
 
     <script>
         $(document).ready(function () {
@@ -53,17 +50,17 @@
                 }
             });
 
-            let table = new DataTable('#userDemoContainer', {
+            let table = new DataTable('#productContainer', {
                 deferRender: true,
                 scroller: false,
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: "{{ route('user.index') }}",
+                    url: "{{ route('product.index') }}",
                 },
                 columnDefs: [
                     {
-                        targets: [1,2,3,4,5,6],
+                        targets: [1,2,3,4],
                         searchable: true,
                     }
                 ],
@@ -71,18 +68,15 @@
                     { data: 'id', name: 'id' },
                     {
                         data: function (row){
-                            return  '<a href="'+ route('user.show' , row.id)+'" data-id="'+ row.id +'">'+ row.first_name +'</a>';
+                            return  '<a href="'+ route('product.show' , row.id)+'" data-id="'+ row.id +'">'+ row.title +'</a>';
                         },
-                        name: 'first name'
+                        name: 'title'
                     },
-                    { data: 'last_name', name: 'last name' },
-                    { data: 'email', name: 'email' },
-                    { data: 'hobbies', name: 'hobbies' },
-                    { data: 'phone_number', name: 'phone number' , type: 'string'},
-                    { data: 'gender', name: 'gender' },
+                    { data: 'description', name: 'description' },
+                    { data: 'status', name: 'status' , type: 'string' },
                     {
                         data: function (row) {
-                            let url = route('user.edit' , row.id );
+                            let url = route('product.edit' , row.id );
                             let data = [{
                                 'id': row.id,
                                 'url': url,
@@ -100,11 +94,11 @@
             });
 
 
-            $(document).on('click', '#deleteUsers', function () {
+            $(document).on('click', '#deleteProduct', function () {
                 let userId = $(this).data('id');
 
                 $.ajax({
-                    url: route('user.destroy' , userId),
+                    url: route('product.destroy' , userId),
                     type: "DELETE",
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')

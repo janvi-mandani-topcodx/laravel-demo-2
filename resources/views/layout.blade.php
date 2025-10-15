@@ -32,37 +32,10 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{route('chat.index')}}">Chats</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{route('product.index')}}">Products</a>
+                            </li>
                        @endif
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('posts.index')}}">Posts</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('roles.index')}}">Roles</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('permissions.index')}}">Permissions</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('chats.index')}}">Chats</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('user-demo.index')}}">Users Demo</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('product.index')}}">Products</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('cart.product')}}">Products Cart</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('order.index')}}">Orders</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('discounts.index')}}">Discounts</a>--}}
-{{--                        </li>--}}
-{{--                        <li class="nav-item">--}}
-{{--                            <a class="nav-link" href="{{route('gift-card.index')}}">Gift Card</a>--}}
-{{--                        </li>--}}
                 </ul>
                 @if(auth()->check())
                     <div class="btn-group">

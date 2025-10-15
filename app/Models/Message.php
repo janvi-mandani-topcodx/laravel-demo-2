@@ -21,4 +21,9 @@ class Message extends Model
         return $this->belongsTo(User::class, 'admin_id');
     }
 
+    public function messageReplies()
+    {
+        return $this->hasMany(MessageReply::class);
+    }
+
 }

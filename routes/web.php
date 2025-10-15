@@ -3,6 +3,7 @@
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -32,7 +33,10 @@ Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
     Route::resource('user' , UserController::class);
     Route::resource('role' , RoleController::class);
     Route::resource('chat' , ChatController::class);
+    Route::resource('product' , ProductController::class);
     Route::resource('permission' , PermissionController::class);
     Route::get('/message-store' , [ChatController::class , 'messageStore'])->name('message.store');
+    Route::get('/message-get' , [ChatController::class , 'allMessageGet'])->name('chat.get.messages');
+    Route::get('/search-user' , [ChatController::class , 'SearchUser'])->name('search.user');
     Route::get('/logout' , [LoginController::class , 'logout'])->name('logout');
 });
