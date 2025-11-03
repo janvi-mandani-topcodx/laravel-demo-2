@@ -12,7 +12,7 @@
 </div>
 
 <div class="form-check form-switch mb-4">
-    <input class="form-check-input" type="checkbox" role="switch" id="status">
+    <input class="form-check-input" type="checkbox" role="switch" id="status" name="status">
     <label class="form-check-label" for="status">Status</label>
 </div>
 

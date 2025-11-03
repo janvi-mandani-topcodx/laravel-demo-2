@@ -3,6 +3,7 @@
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProductCartController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -35,6 +36,9 @@ Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
     Route::resource('chat' , ChatController::class);
     Route::resource('product' , ProductController::class);
     Route::resource('permission' , PermissionController::class);
+    Route::get('/delete-variant' , [ProductController::class , 'deleteVariant'])->name('delete.variant');
+    Route::get('/productCart/view' , [ProductCartController::class , 'productCartView'])->name('product.cart.view');
+    Route::get('/cart' , [ProductCartController::class , 'addToCart'])->name('add.cart');
     Route::get('/message-store' , [ChatController::class , 'messageStore'])->name('message.store');
     Route::get('/message-get' , [ChatController::class , 'allMessageGet'])->name('chat.get.messages');
     Route::get('/search-user' , [ChatController::class , 'SearchUser'])->name('search.user');

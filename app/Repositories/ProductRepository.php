@@ -24,7 +24,7 @@ class ProductRepository extends BaseRepository
     {
         $media = Arr::only($data, 'image');
         $product = Arr::only($data, ['title', 'description' , 'status']);
-        $variant = Arr::only($data, ['variant_title', 'price', 'sku']);
+        $variant = Arr::only($data, ['variant_title', 'price', 'sku' , 'wholesaler_price']);
 
 
         if (isset($product['status'])) {
@@ -49,23 +49,31 @@ class ProductRepository extends BaseRepository
                     'title' => $variantData['variant_title'][$key],
                     'price' => $variantData['price'][$key],
                     'sku' => $variantData['sku'][$key],
+                    'wholesaler_price' => $variantData['wholesaler_price'][$key] ?? null,
                 ]);
         }
     }
-
     public function update($input, $data)
     {
         $product = Arr::only($input, ['title', 'description' , 'status']);
-        $variant = Arr::only($input, ['variant_title', 'price', 'sku' , 'edit_id']);
+        if (isset($product['status'])) {
+            $product['status'] = 1;
+        } else {
+            $product['status'] = 0;
+        }
+
+        $variant = Arr::only($input, ['variant_title', 'price', 'sku' , 'edit_id' , 'wholesaler_price']);
 
         $deleteImg = $data->getMedia('product');
-        if($input->hasFile('image')){
-            foreach ($input['image'] as $file) {
-                $data->addMedia($file)->toMediaCollection('product');
-            }
-            if($deleteImg){
-                foreach ($deleteImg as $images){
-                    $images->delete();
+        if(isset($input['image'])){
+            if($input->hasFile('image')){
+                foreach ($input['image'] as $file) {
+                    $data->addMedia($file)->toMediaCollection('product');
+                }
+                if($deleteImg){
+                    foreach ($deleteImg as $images){
+                        $images->delete();
+                    }
                 }
             }
         }

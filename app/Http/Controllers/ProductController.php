@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Repositories\ProductRepository;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -26,6 +27,14 @@ class ProductController extends Controller
         $product = Product::all();
         if ($request->ajax()) {
             return DataTables::of(Product::get())
+                ->editColumn('status', function ($product) {
+                    if ($product->status == 1) {
+                        return 'Active';
+                    }
+                    else{
+                        return 'Inactive';
+                    }
+                })
                 ->make(true);
         }
         return view('products.index', compact('product'));
@@ -92,5 +101,11 @@ class ProductController extends Controller
                 $img->delete();
             }
         }
+    }
+
+    public function deleteVariant(Request $request)
+    {
+        $input = $request->all();
+        ProductVariant::find($input['delete_id'])->delete();
     }
 }

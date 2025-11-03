@@ -11,5 +11,6 @@ class ProductVariant extends Model
         'title',
         'price',
         'sku',
+        'wholesaler_price',
     ];
 }

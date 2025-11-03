@@ -4,7 +4,7 @@
         <section class="h-100 gradient-custom">
             <div class="container py-5 h-100">
                 <div class="row justify-content-center align-items-center h-100">
-                    <div class="col-12 col-lg-9 col-xl-7">
+                    <div class="col-8">
                         <form method="POST" enctype="multipart/form-data" action="{{ route('product.store') }}">
                             <div class="card shadow-2-strong card-registration" style="border-radius: 15px;">
                                 <div class="card-body p-4 p-md-5">
@@ -24,20 +24,25 @@
                                             <div class="col">
                                                 <label class="form-label fw-bold" for="title">Title</label>
                                                 <input type="text" class="form-control" name="variant_title[]">
-                                                <span> @error('variant_title') {{$message}}  @enderror</span>
+                                                <span class="text-danger">@error('variant_title.' . 0){{ $message }}  @enderror</span>
                                             </div>
                                             <div class="col">
                                                 <label class="form-label fw-bold" for="price">Price</label>
                                                 <input type="text" class="form-control" name="price[]">
-                                                <span> @error('price') {{$message}}  @enderror</span>
+                                                <span class="text-danger">@error('price.' . 0){{ $message }}  @enderror</span>
                                             </div>
                                             <div class="col">
                                                 <label class="form-label fw-bold" for="sku" >Sku</label>
                                                 <input type="text" class="form-control" name="sku[]">
-                                                <span> @error('sku') {{$message}}  @enderror</span>
+                                                <span class="text-danger">@error('sku.' . 0){{ $message }}  @enderror</span>
                                             </div>
                                             <div class="col">
-                                                <input type="button" class="btn btn-danger delete-variant" value="Delete">
+                                                <label class="form-label fw-bold" for="wholesalerPrice" >wholesaler Price</label>
+                                                <input type="text" class="form-control" name="wholesaler_price[]">
+                                                <span class="text-danger">@error('variant_title.' . 0){{ $message }}  @enderror</span>
+                                            </div>
+                                            <div class="col d-flex justify-content-center align-items-center">
+                                                <input type="button" class="btn btn-danger delete-variant" value="Delete" style="width: 114px; height: 44px;">
                                             </div>
                                         </div>
                                     </div>
@@ -71,8 +76,12 @@
                             <input type="text" class="form-control" name="sku[]">
                         </div>
                         <div class="col">
-                             <input type="button" class="btn btn-danger delete-variant" value="Delete">
+                            <label class="form-label fw-bold" for="wholesalerPrice" >wholesaler Price</label>
+                            <input type="text" class="form-control" name="wholesaler_price[]">
                         </div>
+                         <div class="col d-flex justify-content-center align-items-center">
+                             <input type="button" class="btn btn-danger delete-variant" value="Delete" style="width: 114px; height: 44px;">
+                         </div>
                     </div>
                 `;
                 $('.variants').append(row)
