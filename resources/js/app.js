@@ -6,3 +6,770 @@ import DataTable from 'datatables.net';
 window.DataTable  =  DataTable;
 
 import 'jsrender';
+
+
+$(document).ready(function () {
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    //cart
+    function count() {
+        let totalCount = 0;
+        $('.quantity-cart').each(function () {
+            let qty = parseInt($(this).text());
+            totalCount += qty;
+        });
+        $('.count').text(totalCount);
+    }
+    function updateTotal() {
+        let totalPrice = 0;
+        $('.quantity-cart').each(function () {
+            let quantity = parseFloat($(this).text());
+            console.log(quantity)
+            let price = $(this).parents('.row').find('.cart-price').text();
+            console.log(price)
+            let total = quantity * price;
+            totalPrice += total;
+        });
+
+        $('.total').text(totalPrice)
+        $('.checkout-total').text(totalPrice)
+        $('.subtotal').text(totalPrice)
+        $('.checkout-subtotal').text(totalPrice)
+    }
+    updateTotal();
+    count();
+    $(document).on('click', '.close-product', function () {
+        let deleteId = $(this).data('id');
+        let productId = $(this).data('product');
+        let cartId = $(this).data('id');
+        let row = $(this).closest('.cart-' + cartId);
+        let row1 = $('.checkoutAllItems').find('.dlt-' + cartId).parents('.cartData');
+
+        $.ajax({
+            url: route('delete.cart'),
+            type: "GET",
+            data: {
+                delete_id: deleteId
+            },
+            success: function (response) {
+                if (response.success) {
+                    row.remove();
+                    row1.remove()
+                    $('.product-' + productId).find('#addToCart').show();
+                    $('.product-' + productId).find('#incrementDecrement').hide();
+                    count();
+                    updateTotal();
+                }
+            },
+        });
+    });
+
+    //product_cart
+        function variantSize(){
+            $('.variant-button').each(function() {
+                let size = $(this);
+                let variantId = size.data('id');
+                let productId = size.data('product-id');
+                let price = size.data('price');
+                let sku = size.data('sku');
+                let variantName = size.text();
+                size.parents('.card').find('.price').text(price);
+                size.parents('.card').find('.price').attr('data-sku', sku);
+                size.parents('.card').find('.price').attr('data-variant-title', variantName);
+                size.parents('.card').find('.price').attr('data-variant', variantId);
+                size.parents('.card').find('.price').attr('data-product-id', productId);
+            });
+        }
+        variantSize();
+        $(document).on('click', '.variant-button', function () {
+            let price = $(this).data('price');
+            let productId = $(this).data('product-id');
+            let sku = $(this).data('sku');
+            let variant = $(this).data('id');
+            let variantName = $(this).data('variant-title');
+            let product = $('.product-' + productId).find('.price');
+            product.data('sku', sku);
+            product.text(price)
+            product.data('variant', variant);
+            product.data('variant-title', variantName);
+        });
+
+        $(document).on('click' , '.add-to-cart' , function (){
+            let product = $(this).parents('.card');
+            let price = product.find('.price').text();
+            let productId = product.data('id');
+            let variantId = product.find('.price').data('variant');
+            let title = product.find('.card-title').text();
+            let image = product.data('url');
+            let size = product.find('.price').data('sku');
+            console.log(size)
+            $.ajax({
+                url: route('add.cart') ,
+                type: "GET",
+                data: {
+                    price : price,
+                    product_id : productId,
+                    variant_id : variantId,
+                    quantity : 1,
+                    title : title,
+                    size : size,
+                    image : image,
+                },
+                success: function (response) {
+                    if(response.quantity){
+                        $('.cart-' + response.cartId).find('.quantity-cart').text(response.quantity)
+                    }
+                    else{
+                        $('#allCartData').append(response.html)
+                        $('.count').text(response.count)
+                    }
+                    updateTotal();
+                    count();
+                },
+            });
+        });
+
+        $(document).on('click' , '.increment' , function (){
+            let productId = $(this).parents('.d-flex').data('product');
+            let variantId = $(this).parents('.d-flex').data('variant');
+            let cartQuantity = $(this).parents('.d-flex').find('.quantity-cart').text();
+            let checkoutQuantity = $(this).parents('.d-flex').find('.quantity-checkout').text();
+            let newQuantity = 0;
+            if(cartQuantity){
+                newQuantity = parseInt(cartQuantity) + 1;
+            }
+            else{
+                newQuantity = parseInt(checkoutQuantity) + 1;
+            }
+
+            $('.cart-quantity-'+productId+'-'+variantId).text(newQuantity);
+            $('.checkout-quantity-'+productId+'-'+variantId).text(newQuantity);
+
+            $.ajax({
+                url: route('update.quantity'),
+                type: "GET",
+                data: {
+                    product_id: productId,
+                    variant_id: variantId,
+                    quantity: newQuantity,
+                },
+                success: function (response) {
+                    count();
+                    updateTotal();
+                }
+            });
+        });
+        $(document).on('click' , '.decrement' , function (){
+            let productId = $(this).parents('.d-flex').data('product');
+            let variantId = $(this).parents('.d-flex').data('variant');
+            let cartQuantity = $(this).parents('.d-flex').find('.quantity-cart').text();
+            let checkoutQuantity = $(this).parents('.d-flex').find('.quantity-checkout').text();
+
+
+            if(cartQuantity > 1 || checkoutQuantity > 1){
+                let newQuantity = 0;
+                if(cartQuantity){
+                    newQuantity = parseInt(cartQuantity) - 1;
+                }
+                else{
+                    newQuantity = parseInt(checkoutQuantity) - 1;
+                }
+                $('.cart-quantity-'+productId+'-'+variantId).text(newQuantity);
+                $('.checkout-quantity-'+productId+'-'+variantId).text(newQuantity);
+
+                $.ajax({
+                    url: route('update.quantity'),
+                    type: "GET",
+                    data: {
+                        product_id: productId,
+                        variant_id: variantId,
+                        quantity: newQuantity,
+                    },
+                    success: function (response) {
+                        count();
+                        updateTotal();
+                    }
+                });
+            }
+        });
+
+
+        $(document).on('click' , '.checkoutBtn' , function (){
+            window.location.href = route('checkout.show');
+        });
+
+
+    //chat in dashboard
+
+    let refreshInterval;
+    $('#messageSend').hide();
+
+    $(document).on('keyup', '#search' ,  function () {
+        let query = $(this).val();
+        $.ajax({
+            url: route('search.user'),
+            method: "GET",
+            data: {
+                search: query
+            },
+            success: function (response) {
+                $('.search-data').html(response.html);
+                $('.message-history').hide();
+            },
+            error: function (response){
+                $('.search-data').html(response.html);
+            }
+        });
+    });
+
+
+    $(document).on('click' , '#selectUser' , function (){
+        let id = $(this).data('id');
+        $.ajax({
+            url: route('message.store'),
+            method: "GET",
+            dataType : 'json',
+            data: {
+                user_id: id,
+            },
+            success: function (response) {
+                console.log(response)
+                $('#messageSend').show();
+                $('.message-header').find('.message-header-user').text(response.messageUser)
+                $('.message-header').find('.message-header-user').data('id' , response.messageId)
+                $('.message-header').addClass("border-bottom")
+            },
+        });
+    })
+
+    $(document).on('click' , '.user-message-data' , function (){
+        $('#messageSend').show();
+        let name = $(this).data('name');
+        let messageId = $(this).data('message-id');
+        $('.message-header').find('.message-header-user').text(name)
+        $('.message-header').find('.message-header-user').data('id' , messageId);
+
+        function getMessages(){
+            $.ajax({
+                url:route('chat.get.messages'),
+                method: "GET",
+                data: {
+                    message_id: messageId
+                },
+                success: function (response) {
+                    $('.message-user').html(response.reply)
+                    $('.message-header').addClass("border-bottom")
+                }
+            });
+        }
+        getMessages();
+        if(refreshInterval){
+            clearInterval(refreshInterval);
+        }
+        refreshInterval = setInterval(getMessages, 5000);
+    })
+
+    $(document).on('click', '.send-message' , function (){
+        let messageId = $('.message-header').find('.message-header-user').data('id');
+        console.log( $('.message-header').find('.message-header-user'))
+        let message = $(this).parents('#messageSend').find('.message-text').val();
+
+        $.ajax({
+            url: route('chat.store'),
+            method: "post",
+            data: {
+                message_id : messageId,
+                message : message,
+                _token: $('meta[name="csrf-token"]').attr('content'),
+            },
+            success: function (response) {
+                let align;
+                if(response.message_user.admin_id == response.auth_id || response.send_by_admin == 1){
+                    align = 'justify-content-end';
+                }
+                else {
+                    align = 'justify-content-start';
+                }
+                let reply = `
+                                <div class="d-flex ${align}">
+                                    <div class="message message-${response.message_reply_id}" data-message-id="${response.message_user.id}" data-message-reply-id="${response.message_reply_id}" data-message="${response.message}" data-send-by-admin="${response.send_by_admin}">
+                                        <small>${response.created_at}</small>
+                                        <div>
+                                            <p class="one-message">${response.message}</p>
+                                            <div class="dropdown" >
+                                                <button class="dropdown-toggle"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                       <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                                       </svg>
+                                                </button>
+                                                <ul class="dropdown-menu" style="top: 3px; left: -98px;">
+                                                       <li class="mb-2">
+                                                          <input type="hidden" name="edit_message" value="${response.message_reply_id}">
+                                                          <input type="hidden" name="message_id" value="${response.message_user.id}">
+                                                          <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.message_reply_id}"> Edit </span>
+                                                      </li>
+                                                     <li>
+                                                        <span class="delete-btn dropdown-item" data-id="${response.message_reply_id}">Delete</span>
+                                                     </li>
+                                                </ul>
+                                           </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                `;
+                $('.message-user').append(reply)
+                $('.message-text').val('');
+            },
+        });
+    });
+
+    $(document).on('click' , '.edit-btn' , function (){
+        let message = $(this).data('message');
+        let messageId = $(this).data('id');
+        $('#messageSend').find('.btn').removeClass('send-message');
+        $('#messageSend').find('.btn').text('Update');
+        $('#messageSend').find('.btn').addClass('update-message')
+        $('#messageSend').find('.message-text').val(message)
+        $('#messageSend').find('.update-message').data('id' ,messageId )
+    });
+
+    $(document).on('click' , '.update-message' ,function (){
+        let messageId = $(this).data('id');
+        let message = $(this).parents('#messageSend').find('.message-text').val();
+        $.ajax({
+            url: route('chat.update' , messageId),
+            method: "PUT",
+            data: {
+                message_id: messageId,
+                message : message,
+                _token: $('meta[name="csrf-token"]').attr('content'),
+            },
+            success: function (response) {
+                $(`.message-${response.messageId}`).find('.one-message').text(response.message);
+                $(`.message-${response.messageId}`).data('message' , response.message);
+                $('.message-text').val('');
+            }
+        });
+    })
+
+    $(document).on('click' , '.delete-btn' , function (){
+        let deleteId = $(this).data('id');
+        $.ajax({
+            url: route('chat.destroy' , deleteId),
+            method: "DELETE",
+            data: {
+                delete_id: deleteId,
+            },
+            success: function (response) {
+                $(`.message-${deleteId}`).remove();
+            }
+        });
+    });
+
+
+    //permission in index
+
+    let table = new DataTable('#PermissionController', {
+        deferRender: true,
+        scroller: false,
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: route('permission.index'),
+        },
+        columns: [
+            { data: 'id', name: 'id' },
+            {
+                data: function (row){
+                    return  '<a href="'+ route('permission.show' , row.id)+'" data-id="'+ row.id +'">'+ row.name +'</a>';
+                },
+                name: 'first name'
+            },
+            {
+                data: function (row) {
+                    let url = route('permission.edit' , row.id );
+                    let data = [{
+                        'id': row.id,
+                        'url': url,
+                        'edit': 'Edit',
+                        'delete': 'Delete'
+                    }];
+                    let template = $.templates("#editDeleteScript");
+                    return template.render(data);
+                },
+                name: 'actions',
+                orderable: false,
+                searchable: false
+            }
+        ]
+    });
+
+
+    $(document).on('click', '#deletePermission', function () {
+        let permissionId = $(this).data('id');
+
+        $.ajax({
+            url: route('permission.destroy' , permissionId),
+            type: "DELETE",
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function () {
+                table.ajax.reload(null, false);
+            },
+        });
+    });
+
+
+    //product in create
+
+    $(document).on('click' , '#addVariant' , function (){
+        let row =`
+                    <div class="row pt-5 single-variant">
+                        <div class="col">
+                            <label class="form-label fw-bold" for="title">Title</label>
+                            <input type="text" class="form-control" name="variant_title[]">
+                        </div>
+                        <div class="col">
+                            <label class="form-label fw-bold" for="price">Price</label>
+                            <input type="text" class="form-control" name="price[]">
+                        </div>
+                        <div class="col">
+                            <label class="form-label fw-bold" for="sku" >Sku</label>
+                            <input type="text" class="form-control" name="sku[]">
+                        </div>
+                        <div class="col">
+                            <label class="form-label fw-bold" for="wholesalerPrice" >wholesaler Price</label>
+                            <input type="text" class="form-control" name="wholesaler_price[]">
+                        </div>
+                         <div class="col d-flex justify-content-center align-items-center">
+                             <input type="button" class="btn btn-danger delete-variant" value="Delete" style="width: 114px; height: 44px;">
+                         </div>
+                    </div>
+                `;
+        $('.variants').append(row)
+    })
+
+    $(document).on('click' , '.delete-variant' , function (){
+        if($('.single-variant').length > 1){
+            $(this).parents('.single-variant').remove();
+        }
+    });
+    //product in edit and create
+
+    $('#customFile').on('change', function(e) {
+        const files = e.target.files;
+        const preview = $('#imagePreview');
+        preview.innerHTML = '';
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.type.startsWith('image')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.maxWidth = '150px';
+                    img.style.margin = '5px';
+                    preview.append(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+
+
+    //product in edit
+
+    $(document).on('click' , '#addVariant' , function (){
+        let row =`
+                    <div class="row pt-5 single-variant">
+                        <div class="col">
+                            <label class="form-label fw-bold" for="title">Title</label>
+                            <input type="text" class="form-control" name="variant_title[]">
+                        </div>
+                        <div class="col">
+                            <label class="form-label fw-bold" for="price">Price</label>
+                            <input type="text" class="form-control" name="price[]">
+                        </div>
+                        <div class="col">
+                            <label class="form-label fw-bold" for="sku" >Sku</label>
+                            <input type="text" class="form-control" name="sku[]">
+                        </div>
+                        <div class="col">
+                            <label class="form-label fw-bold" for="wholesalerPrice" >wholesaler Price</label>
+                            <input type="text" class="form-control" name="wholesaler_price[]">
+                        </div>
+                        <div class="col d-flex justify-content-center align-items-center">
+                            <input type="button" class="btn btn-danger delete-variant" value="Delete" style="width: 114px; height: 44px;">
+                        </div>
+                    </div>
+                `;
+        $('.variants').append(row)
+    })
+
+    $(document).on('click' , '.delete-variant' , function (){
+        if($('.single-variant').length > 1){
+            $(this).parents('.single-variant').remove();
+        }
+    });
+
+    $(document).on('click' , '.delete-edit-variant' , function (){
+        let editId = $(this).parents('.single-variant').find('.edit-id').val();
+        $.ajax({
+            url: route('delete.variant'),
+            type: "GET",
+            data: {
+                delete_id : editId
+            },
+            success: function () {
+            },
+        });
+    })
+
+    //product in index
+
+    let tableProduct = new DataTable('#productContainer', {
+        deferRender: true,
+        scroller: false,
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: route('product.index'),
+        },
+        columnDefs: [
+            {
+                targets: [1,2,3,4],
+                searchable: true,
+            }
+        ],
+        columns: [
+            { data: 'id', name: 'id' },
+            {
+                data: function (row){
+                    return  '<a href="'+ route('product.show' , row.id)+'" data-id="'+ row.id +'">'+ row.title +'</a>';
+                },
+                name: 'title'
+            },
+            { data: 'description', name: 'description' },
+            { data: 'status', name: 'status' , type: 'string' },
+            {
+                data: function (row) {
+                    let url = route('product.edit' , row.id );
+                    let data = [{
+                        'id': row.id,
+                        'url': url,
+                        'edit': 'Edit',
+                        'delete': 'Delete'
+                    }];
+                    let template = $.templates("#editDeleteScript");
+                    return template.render(data);
+                },
+                name: 'actions',
+                orderable: false,
+                searchable: false
+            }
+        ]
+    });
+
+
+    $(document).on('click', '#deleteProduct', function () {
+        let userId = $(this).data('id');
+
+        $.ajax({
+            url: route('product.destroy' , userId),
+            type: "DELETE",
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function () {
+                tableProduct.ajax.reload(null, false);
+            },
+        });
+    });
+
+    //roles in index
+
+    let tableRole = new DataTable('#RolesContainer', {
+        deferRender: true,
+        scroller: false,
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url:route('role.index'),
+        },
+        columns: [
+            { data: 'id', name: 'id' },
+            {
+                data: function (row){
+                    return  '<a href="'+ route('role.show' , row.id)+'" data-id="'+ row.id +'">'+ row.name +'</a>';
+                },
+                name: 'first name'
+            },
+            {
+                data: function (row) {
+                    let url = route('role.edit' , row.id );
+                    let data = [{
+                        'id': row.id,
+                        'url': url,
+                        'edit': 'Edit',
+                        'delete': 'Delete'
+                    }];
+                    let template = $.templates("#editDeleteScript");
+                    return template.render(data);
+                },
+                name: 'actions',
+                orderable: false,
+                searchable: false
+            }
+        ]
+    });
+
+
+    $(document).on('click', '#deleteRole', function () {
+        let roleId = $(this).data('id');
+
+        $.ajax({
+            url: route('role.destroy' , roleId),
+            type: "DELETE",
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function () {
+                tableRole.ajax.reload(null, false);
+            },
+        });
+    });
+
+
+    //user in index
+    let tableUser = new DataTable('#userDemoContainer', {
+        deferRender: true,
+        scroller: false,
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: route('user.index'),
+        },
+        columnDefs: [
+            {
+                targets: [1,2,3,4,5,6],
+                searchable: true,
+            }
+        ],
+        columns: [
+            { data: 'id', name: 'id' },
+            {
+                data: function (row){
+                    return  '<a href="'+ route('user.show' , row.id)+'" data-id="'+ row.id +'">'+ row.first_name +'</a>';
+                },
+                name: 'first name'
+            },
+            { data: 'last_name', name: 'last name' },
+            { data: 'email', name: 'email' },
+            { data: 'hobbies', name: 'hobbies' },
+            { data: 'phone_number', name: 'phone number' , type: 'string'},
+            { data: 'gender', name: 'gender' },
+            {
+                data: function (row) {
+                    let url = route('user.edit' , row.id );
+                    let data = [{
+                        'id': row.id,
+                        'url': url,
+                        'edit': 'Edit',
+                        'delete': 'Delete'
+                    }];
+                    let template = $.templates("#editDeleteScript");
+                    return template.render(data);
+                },
+                name: 'actions',
+                orderable: false,
+                searchable: false
+            }
+        ]
+    });
+
+
+    $(document).on('click', '#deleteUsers', function () {
+        let userId = $(this).data('id');
+
+        $.ajax({
+            url: route('user.destroy' , userId),
+            type: "DELETE",
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function () {
+                tableUser.ajax.reload(null, false);
+            },
+        });
+    });
+
+    //checkout
+
+    $('#cardButton').hide();
+
+    $(document).on('click', '#checkoutButton', function () {
+        $('#checkoutField').hide();
+        $('#cardButton').show();
+
+        let total = $('.checkout-total').text();
+        const stripe = Stripe(window.stripePublicKey);
+        let elements = null;
+        $.ajax({
+            url: route('cashier.payment.intent'),
+            method: "GET",
+            data: {
+                total : total,
+            },
+            success: function (response) {
+                console.log(response);
+                elements = stripe.elements({ clientSecret: response.client_secret});
+                const paymentElement = elements.create('payment');
+                paymentElement.mount('#cardElement');
+            },
+        });
+
+        const paymentButton = document.getElementById('cardButton');
+        paymentButton.addEventListener('click',async (e) => {
+            e.preventDefault();
+
+            const {setupIntent, error} = await stripe.confirmSetup({
+                elements,
+                confirmParams: {
+                    return_url: route('payment.success'),
+                },
+                redirect: "if_required",
+            });
+
+            console.log(setupIntent);
+            if(error){
+                console.log(error)
+            }
+            else{
+                let total = $('.checkout-total').text();
+                let myForm = $('#checkoutForm')[0];
+                let formData = new FormData(myForm);
+                formData.append('total' ,total);
+                formData.append('paymentMethodId' , setupIntent.payment_method);
+                $.ajax({
+                    url: route('order.store'),
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+
+                    },
+                });
+            }
+        });
+    });
+
+
+});

@@ -3,8 +3,10 @@
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title></title>
-
-
+    <script>
+        window.stripePublicKey = "{{ config('services.stripe.public_key') }}";
+    </script>
+    <script src="https://js.stripe.com/v3/"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
@@ -76,7 +78,8 @@
             </div>
         </nav>
     </div>
-    @include('cart')
+
+         @include('cart')
 </div>
 @yield('contents')
 @yield('scripts')

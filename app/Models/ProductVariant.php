@@ -13,4 +13,9 @@ class ProductVariant extends Model
         'sku',
         'wholesaler_price',
     ];
+
+
+    public function carts(){
+        return $this->hasMany(Cart::class);
+    }
 }

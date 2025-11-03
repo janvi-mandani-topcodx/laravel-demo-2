@@ -12,21 +12,31 @@ class ProductCartController extends Controller
     {
         $products = Product::where('status' , 1)->get();
         $role = auth()->user()->getRoleNames()->first();
-
-        return view('product_cart.index' , compact('products' , 'role'));
+        $carts = Cart::with(['product' , 'productVariant'])->where('user_id' , auth()->id())->get();
+        return view('product_cart.index' , compact('products' , 'role' , 'carts'));
     }
 
     public function addToCart(Request $request){
         $input = $request->all();
         $html = '';
-        $cart = Cart::create([
-            'user_id' => auth()->id(),
-            'product_id' => $input['product_id'],
-            'variant_id' => $input['variant_id'],
-            'quantity' => $input['quantity'],
-        ]);
-
-        $html .= '
+        $cartCount = Cart::where('user_id' , auth()->id())->count();
+        $cartEdit = Cart::where('user_id',auth()->id())->where('product_id',$input['product_id'])->where('variant_id' , $input['variant_id'])->first();
+        if($cartEdit){
+            $cartEdit->quantity = $cartEdit->quantity + 1;
+            $cartEdit->save();
+            return response()->json([
+                'quantity' => $cartEdit->quantity,
+                'cartId' =>$cartEdit->id,
+            ]);
+        }
+        else{
+            $cart = Cart::create([
+                'user_id' => auth()->id(),
+                'product_id' => $input['product_id'],
+                'variant_id' => $input['variant_id'],
+                'quantity' => $input['quantity'],
+            ]);
+            $html .= '
                     <div class="row my-3 bg-light cart-'.$cart->id.'" data-product="'.$input['product_id'].'" data-variant="'.$input['variant_id'].'" data-cart="'.$cart->id.'">
                         <div class="col">
                               <img class="card-img-top rounded" src="'.$input['image'].'" alt="Card image cap" style="height: 100px; width: 100px;">
@@ -40,7 +50,7 @@ class ProductCartController extends Controller
                             </div>
                              <div class="d-flex align-items-end justify-content-around pt-2 " data-product="'.$input['product_id'].'" data-variant="'.$input['variant_id'].'">
                                 <span class="fs-4 decrement decrement-cart-'.$input['product_id'].'-'.$input['variant_id'].'">-</span>
-                                <span class="fs-5 quantity-cart">1</span>
+                                <span class="fs-5 quantity-cart cart-quantity-'.$input['product_id'].'-'.$input['variant_id'].'">1</span>
                                 <span class="fs-4 increment increment-cart-'.$input['product_id'].'-'.$input['variant_id'].'">+</span>
                             </div>
                         </div>
@@ -55,8 +65,40 @@ class ProductCartController extends Controller
                         </div>
                     </div>
                 ';
+            if($cartCount == 1){
+                $html .= '
+                <div class="position-absolute w-100 px-2" style="bottom: 20px; left:0;">
+                    <div class="d-flex justify-content-between my-2" id="subtotal">
+                        <label>Subtotal</label>
+                        <div class="d-flex">
+                            <span>$</span>
+                            <span class="subtotal"></span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between my-2">
+                        <label>Total</label>
+                        <div class="d-flex">
+                            <span>$</span>
+                            <span class="total"></span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <div class="btn btn-success w-100 checkoutBtn">Checkout</div>
+                    </div>
+                </div>
+            ';
+            }
 
-        return response()->json(['html' => $html]);
 
+            return response()->json(['html' => $html]);
+        }
+    }
+
+    public  function updateQuantity()
+    {
+        $input = request()->all();
+        $cart = Cart::where('user_id' , auth()->id())->where('product_id',$input['product_id'])->where('variant_id',$input['variant_id'])->first();
+        $cart->quantity = $input['quantity'];
+        $cart->save();
     }
 }

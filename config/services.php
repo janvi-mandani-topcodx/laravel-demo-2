@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'stripe' => [
+        'secret_key' => env('STRIPE_SECRET'),
+        'public_key' => env('STRIPE_KEY'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

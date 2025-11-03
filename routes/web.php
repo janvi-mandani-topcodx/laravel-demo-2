@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductCartController;
 use App\Http\Controllers\ProductController;
@@ -36,9 +38,14 @@ Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
     Route::resource('chat' , ChatController::class);
     Route::resource('product' , ProductController::class);
     Route::resource('permission' , PermissionController::class);
+    Route::resource('order' , OrderController::class);
     Route::get('/delete-variant' , [ProductController::class , 'deleteVariant'])->name('delete.variant');
     Route::get('/productCart/view' , [ProductCartController::class , 'productCartView'])->name('product.cart.view');
     Route::get('/cart' , [ProductCartController::class , 'addToCart'])->name('add.cart');
+    Route::get('/update-quantity' , [ProductCartController::class , 'updateQuantity'])->name('update.quantity');
+    Route::get('/checkout/show' , [CheckoutController::class ,  'checkoutShow'])->name('checkout.show');
+    Route::get('/checkout/stripe/payment' , [CheckoutController::class ,  'cashierPaymentIntent'])->name('cashier.payment.intent');
+    Route::get('/payment/success' , [OrderController::class ,  'paymentSuccess'])->name('payment.success');
     Route::get('/message-store' , [ChatController::class , 'messageStore'])->name('message.store');
     Route::get('/message-get' , [ChatController::class , 'allMessageGet'])->name('chat.get.messages');
     Route::get('/search-user' , [ChatController::class , 'SearchUser'])->name('search.user');

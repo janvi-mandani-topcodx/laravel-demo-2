@@ -20,6 +20,11 @@ class Product extends Model implements HasMedia
         return $this->hasMany(ProductVariant::class);
     }
 
+    public function carts(){
+        return $this->hasMany(Cart::class);
+    }
+
+
     public function getImageUrlAttribute()
     {
         $img = [];
