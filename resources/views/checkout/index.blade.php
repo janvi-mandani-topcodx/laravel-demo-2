@@ -49,7 +49,7 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="row">
-                                            <button type="button" class="btn-close close-product dlt-{{$cart->id}}" aria-label="Close" data-product="{{$cart->product->id}}" data-id="{{$cart->id}}"></button>
+                                            <button type="button" class="btn-close close-product dlt-{{$cart->id}}" aria-label="Close" data-product="{{$cart->product->id}}" data-variant="{{$cart->id}}"></button>
                                         </div>
                                         <div class="pt-5 d-flex">
                                             <p>$</p>

@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Facade;
+
 return [
 
     /*
@@ -12,8 +14,13 @@ return [
     | other UI elements where an application name needs to be displayed.
     |
     */
+    'aliases' => Facade::defaultAliases()->merge([
+        'Cart' => Darryldecode\Cart\Facades\CartFacade::class,
+    ])->toArray(),
 
     'name' => env('APP_NAME', 'Laravel'),
+
+
 
     /*
     |--------------------------------------------------------------------------

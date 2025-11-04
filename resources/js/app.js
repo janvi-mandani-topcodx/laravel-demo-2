@@ -18,34 +18,35 @@ $(document).ready(function () {
 
     //cart
     function count() {
-        let totalCount = 0;
-        $('.quantity-cart').each(function () {
-            let qty = parseInt($(this).text());
-            totalCount += qty;
-        });
-        $('.count').text(totalCount);
+        // let totalCount = 0;
+        // $('.quantity-cart').each(function () {
+        //     let qty = parseInt($(this).text());
+        //     totalCount += qty;
+        // });
+        // $('.count').text(totalCount);
     }
     function updateTotal() {
-        let totalPrice = 0;
-        $('.quantity-cart').each(function () {
-            let quantity = parseFloat($(this).text());
-            console.log(quantity)
-            let price = $(this).parents('.row').find('.cart-price').text();
-            console.log(price)
-            let total = quantity * price;
-            totalPrice += total;
-        });
-
-        $('.total').text(totalPrice)
-        $('.checkout-total').text(totalPrice)
-        $('.subtotal').text(totalPrice)
-        $('.checkout-subtotal').text(totalPrice)
+        // let totalPrice = 0;
+        //         // $('.quantity-cart').each(function () {
+        //         //     let quantity = parseFloat($(this).text());
+        //         //     console.log(quantity)
+        //         //     let price = $(this).parents('.row').find('.cart-price').text();
+        //         //     console.log(price)
+        //         //     let total = quantity * price;
+        //         //     totalPrice += total;
+        //         // });
+        //         //
+        //         // $('.total').text(totalPrice)
+        //         // $('.checkout-total').text(totalPrice)
+        //         // $('.subtotal').text(totalPrice)
+        //         // $('.checkout-subtotal').text(totalPrice)
     }
+
     updateTotal();
     count();
     $(document).on('click', '.close-product', function () {
-        let deleteId = $(this).data('id');
-        let cartId = $(this).data('id');
+        let deleteId = $(this).data('variant');
+        let cartId = $(this).data('variant');
         let row = $(this).closest('.cart-' + cartId);
 
         $.ajax({
@@ -822,17 +823,17 @@ $(document).ready(function () {
 
 
     function updateTotalOrder() {
-        let totalPrice = 0;
-        $('.quantity-order').each(function () {
-            let quantity = parseInt($(this).text());
-            let priceText = $(this).closest('.row').find('.order-price').text();
-            let price = parseInt(priceText);
-            let total = quantity * price;
-            totalPrice += total;
-        });
-
-        $('.order-total').text(totalPrice);
-        $('.order-subtotal').text(totalPrice);
+        // let totalPrice = 0;
+        // $('.quantity-order').each(function () {
+        //     let quantity = parseInt($(this).text());
+        //     let priceText = $(this).closest('.row').find('.order-price').text();
+        //     let price = parseInt(priceText);
+        //     let total = quantity * price;
+        //     totalPrice += total;
+        // });
+        //
+        // $('.order-total').text(totalPrice);
+        // $('.order-subtotal').text(totalPrice);
     }
     updateTotalOrder()
 
