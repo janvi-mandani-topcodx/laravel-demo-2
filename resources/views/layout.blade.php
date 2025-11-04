@@ -40,6 +40,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{route('product.cart.view')}}">Product Cart</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{route('order.index')}}">Orders</a>
+                            </li>
                        @endif
                 </ul>
                 @if(auth()->check())

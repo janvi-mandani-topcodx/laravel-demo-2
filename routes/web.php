@@ -43,9 +43,11 @@ Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
     Route::get('/productCart/view' , [ProductCartController::class , 'productCartView'])->name('product.cart.view');
     Route::get('/cart' , [ProductCartController::class , 'addToCart'])->name('add.cart');
     Route::get('/update-quantity' , [ProductCartController::class , 'updateQuantity'])->name('update.quantity');
+    Route::get('/close/cart' , [ProductCartController::class , 'cartItemClose'])->name('delete.cart');
     Route::get('/checkout/show' , [CheckoutController::class ,  'checkoutShow'])->name('checkout.show');
     Route::get('/checkout/stripe/payment' , [CheckoutController::class ,  'cashierPaymentIntent'])->name('cashier.payment.intent');
     Route::get('/payment/success' , [OrderController::class ,  'paymentSuccess'])->name('payment.success');
+    Route::get('/search/product/items' , [OrderController::class ,  'searchProductItems'])->name('search.order.items');
     Route::get('/message-store' , [ChatController::class , 'messageStore'])->name('message.store');
     Route::get('/message-get' , [ChatController::class , 'allMessageGet'])->name('chat.get.messages');
     Route::get('/search-user' , [ChatController::class , 'SearchUser'])->name('search.user');

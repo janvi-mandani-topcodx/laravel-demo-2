@@ -28,7 +28,7 @@
                     <div id="allCartData" style="overflow: auto; height: 85%; overflow-x: hidden;">
                         @foreach($carts as $cart)
                             @if($cart->product && $cart->productVariant)
-                                <div class="row my-3 bg-light cart-{{$cart->id}} cart-product-{{$cart->product->id}}" data-product="{{$cart->product->id}}" data-variant="{{$cart->productVariant->id}}" data-cart="{{$cart->id}}">
+                                <div class="row my-3 bg-light cart-{{$cart->id}} cart-product-{{$cart->product->id}} checkout-cart" data-product="{{$cart->product->id}}" data-variant="{{$cart->productVariant->id}}" data-cart="{{$cart->id}}">
                                     <div class="col">
                                         <img class="card-img-top rounded" src="{{$cart->product->image_url[0]}}" alt="Product image" style="height: 100px; width: 100px;">
                                     </div>

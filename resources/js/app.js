@@ -45,10 +45,8 @@ $(document).ready(function () {
     count();
     $(document).on('click', '.close-product', function () {
         let deleteId = $(this).data('id');
-        let productId = $(this).data('product');
         let cartId = $(this).data('id');
         let row = $(this).closest('.cart-' + cartId);
-        let row1 = $('.checkoutAllItems').find('.dlt-' + cartId).parents('.cartData');
 
         $.ajax({
             url: route('delete.cart'),
@@ -57,17 +55,15 @@ $(document).ready(function () {
                 delete_id: deleteId
             },
             success: function (response) {
-                if (response.success) {
+                if (response.status == 'success') {
                     row.remove();
-                    row1.remove()
-                    $('.product-' + productId).find('#addToCart').show();
-                    $('.product-' + productId).find('#incrementDecrement').hide();
                     count();
                     updateTotal();
                 }
             },
         });
     });
+
 
     //product_cart
         function variantSize(){
@@ -757,6 +753,19 @@ $(document).ready(function () {
                 let formData = new FormData(myForm);
                 formData.append('total' ,total);
                 formData.append('paymentMethodId' , setupIntent.payment_method);
+
+                $('.checkout-cart').each(function () {
+                    let productId = $(this).data('product');
+                    let variantId = $(this).data('variant');
+                    let quantity = $(this).find('.quantity-checkout').text();
+                    let price = $(this).find('.cart-price').text();
+
+                    formData.append('product_id[]' , productId);
+                    formData.append('variant_id[]' , variantId);
+                    formData.append('quantity[]' , quantity);
+                    formData.append('price[]' , price);
+                })
+
                 $.ajax({
                     url: route('order.store'),
                     type: "POST",
@@ -764,12 +773,207 @@ $(document).ready(function () {
                     contentType: false,
                     processData: false,
                     success: function (response) {
-
+                        window.location.href = route('order.index');
                     },
                 });
             }
         });
     });
 
+    //order in index
+
+    let tableOrder = new DataTable('#orderContainer', {
+        deferRender: true,
+        scroller: false,
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: route('order.index'),
+        },
+        columns: [
+            { data: 'id', name: 'id' },
+            {
+               data : 'user name',
+                name: 'user name'
+            },
+            { data: 'total', name: 'amount'  , type : 'string'},
+            { data: 'refunded Amount', name: 'refunded Amount'  , type : 'string'},
+            {
+                data: function (row) {
+                    let url = route('order.edit' , row.id );
+                    let data = [{
+                        'id': row.id,
+                        'url': url,
+                        'edit': 'Edit',
+                        'delete': 'Delete'
+                    }];
+                    let template = $.templates("#editDeleteScript");
+                    return template.render(data);
+                },
+                name: 'actions',
+                orderable: false,
+                searchable: false
+            }
+        ]
+    });
+
+
+    //order in edit
+
+
+    function updateTotalOrder() {
+        let totalPrice = 0;
+        $('.quantity-order').each(function () {
+            let quantity = parseInt($(this).text());
+            let priceText = $(this).closest('.row').find('.order-price').text();
+            let price = parseInt(priceText);
+            let total = quantity * price;
+            totalPrice += total;
+        });
+
+        $('.order-total').text(totalPrice);
+        $('.order-subtotal').text(totalPrice);
+    }
+    updateTotalOrder()
+
+    $(document).on('click' , '.order-increment' , function (){
+        let productId = $(this).parents('.d-flex').data('product');
+        let variantId = $(this).parents('.d-flex').data('variant');
+        let orderQuantity = $(this).parents('.d-flex').find('.quantity-order').text();
+
+        let newQuantity = parseInt(orderQuantity) + 1;
+
+        $('.order-quantity-'+productId+'-'+variantId).text(newQuantity);
+
+        updateTotalOrder()
+    });
+
+    $(document).on('click' , '.order-decrement' , function (){
+        let productId = $(this).parents('.d-flex').data('product');
+        let variantId = $(this).parents('.d-flex').data('variant');
+        let orderQuantity = $(this).parents('.d-flex').find('.quantity-order').text();
+
+        let newQuantity = 0;
+
+        if(orderQuantity > 1){
+            newQuantity = parseInt(orderQuantity) - 1;
+        }
+        $('.order-quantity-'+productId+'-'+variantId).text(newQuantity);
+        updateTotalOrder()
+    });
+
+    $(document).on('click', '.close-product-order', function () {
+        let orderItemId = $(this).data('id');
+        let row = $(this).closest('.order-' + orderItemId);
+        row.remove();
+        updateTotalOrder();
+    });
+
+    $(document).on('keyup', '.search-product-edit' ,  function () {
+        let search = $(this).val();
+        $.ajax({
+            url: route('search.order.items'),
+            method: "GET",
+            data: {
+                search: search
+            },
+            success: function (response) {
+                $('#searchableProduct').html(response.html);
+                $('#searchableProduct').css("height", '230px');
+            }
+        });
+    });
+
+    $(document).on('click' , '.single-product' , function () {
+        let productId = $(this).data('id');
+        let variantId = $(this).data('variant');
+        let imagUrl = $(this).data('url');
+        let productTitle = $(this).find('.product-title-search').text();
+        let variantSize = $(this).find('.variant-size-search').text();
+        let price = $(this).find('.price-search').text();
+        let html = '';
+        html = `
+            <div class="row my-3 bg-light order-item order order-product-${productId}"
+             data-product="${productId}" data-variant="${variantId}">
+            <div class="col">
+                <img class="card-img-top rounded" src="${imagUrl}" alt="Product image"
+                     style="height: 100px; width: 100px;"/>
+            </div>
+            <div class="col">
+                <div class="row mb-2">
+                    <span class="col text-muted">${productTitle}</span>
+                </div>
+                <div class="row">
+                    <span class="col">Size : ${variantSize}</span>
+                </div>
+                <div class="d-flex align-items-end justify-content-around pt-2" data-product="${productId}" data-variant="${variantId}">
+                    <span
+                        class="fs-4 order-decrement decrement-order-${productId}-${variantId}">-</span>
+                    <span
+                        class="fs-5 quantity-order  order-quantity-${productId}-${variantId}">1</span>
+                    <span
+                        class="fs-4 order-increment increment-order-${productId}-${variantId}">+</span>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="row">
+                    <button type="button" class="btn-close close-product-order "
+                            aria-label="Close" data-product="${productId}" ></button>
+                </div>
+                <div class="pt-5 d-flex">
+                    <p>$</p>
+                    <p class="order-price">${price}</p>
+                </div>
+            </div>
+        </div>
+        `;
+
+        $('#allOrderData').append(html);
+        $('#searchableProduct').text('');
+        $('.search-product-edit').val('')
+        $('#searchableProduct').css("height", '0');
+        updateTotalOrder()
+    });
+
+    $(document).on('click' , '.edit-order' , function (){
+        let productId = [];
+        let variantId = [];
+        let quantity = [];
+        let price = [];
+        let editId = [];
+        let orderId = $('#allOrderData').data('order');
+        let total = $('.order-total').text();
+        $('.order-item').each(function () {
+            let productData = $(this).data('product');
+            let variantData = $(this).data('variant');
+            let quantityData = $(this).find('.quantity-order').text();
+            let priceData = $(this).find('.order-price').text();
+            let editData = $(this).find('.edit-id').val();
+
+            productId.push(productData);
+            variantId.push(variantData);
+            quantity.push(quantityData);
+            price.push(priceData);
+            editId.push(editData)
+        })
+
+        $.ajax({
+            url: route('order.update' , orderId),
+            method: "PUT",
+            data: {
+                product_id : productId,
+                variant_id : variantId,
+                quantity : quantity ,
+                price : price ,
+                edit_id : editId,
+                total : total ,
+                _token: $('meta[name="csrf-token"]').attr('content'),
+            },
+            success: function (response) {
+
+            },
+        });
+
+    })
 
 });

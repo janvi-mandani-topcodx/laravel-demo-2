@@ -94,11 +94,20 @@ class ProductCartController extends Controller
         }
     }
 
-    public  function updateQuantity()
+    public  function updateQuantity(Request $request)
     {
-        $input = request()->all();
+        $input = $request->all();
         $cart = Cart::where('user_id' , auth()->id())->where('product_id',$input['product_id'])->where('variant_id',$input['variant_id'])->first();
         $cart->quantity = $input['quantity'];
         $cart->save();
+    }
+
+    public function cartItemClose(Request $request)
+    {
+        $input = $request->all();
+        Cart::find($input['delete_id'])->delete();
+        return response()->json([
+            'status' => 'success',
+        ]);
     }
 }
