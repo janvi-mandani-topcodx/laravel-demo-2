@@ -28,6 +28,7 @@ class User extends Authenticatable
         'hobbies',
         'phone_number',
         'email_verified_at',
+        'credit',
     ];
 
     /**

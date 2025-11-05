@@ -36,19 +36,22 @@ $(document).ready(function () {
         //         //     totalPrice += total;
         //         // });
         //         //
-        //         // $('.total').text(totalPrice)
-        //         // $('.checkout-total').text(totalPrice)
-        //         // $('.subtotal').text(totalPrice)
-        //         // $('.checkout-subtotal').text(totalPrice)
+        //         $('.total').text(null)
+        //         $('.doller').text(null)
+        //         // $('.checkout-total').text(null)
+        //         $('.subtotal').text(null)
+                // $('.checkout-subtotal').text(null)
+
+
     }
 
-    updateTotal();
+    // updateTotal();
     count();
     $(document).on('click', '.close-product', function () {
         let deleteId = $(this).data('variant');
         let cartId = $(this).data('variant');
         let row = $(this).closest('.cart-' + cartId);
-
+        updateTotal();
         $.ajax({
             url: route('delete.cart'),
             type: "GET",
@@ -58,8 +61,13 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.status == 'success') {
                     row.remove();
-                    count();
-                    updateTotal();
+                    $('.count').text(response.count)
+                    $('.subtotal').text(response.subtotal)
+                    $('.total').text(response.total)
+                    $('.checkout-subtotal').text(response.subtotal)
+                    $('.checkout-total').text(response.total)
+                    // count();
+
                 }
             },
         });
@@ -105,6 +113,7 @@ $(document).ready(function () {
             let image = product.data('url');
             let size = product.find('.price').data('sku');
             console.log(size)
+            // updateTotal();
             $.ajax({
                 url: route('add.cart') ,
                 type: "GET",
@@ -123,9 +132,12 @@ $(document).ready(function () {
                     }
                     else{
                         $('#allCartData').append(response.html)
-                        $('.count').text(response.count)
                     }
-                    updateTotal();
+                    $('.count').text(response.count)
+                    $('.subtotal').text(response.subtotal)
+                    $('.total').text(response.total)
+                    $('.credit').text(response.credit)
+                    // updateTotal();
                     count();
                 },
             });
@@ -136,28 +148,37 @@ $(document).ready(function () {
             let variantId = $(this).parents('.d-flex').data('variant');
             let cartQuantity = $(this).parents('.d-flex').find('.quantity-cart').text();
             let checkoutQuantity = $(this).parents('.d-flex').find('.quantity-checkout').text();
+            let credit = $('.credit').text();
             let newQuantity = 0;
             if(cartQuantity){
-                newQuantity = parseInt(cartQuantity) + 1;
+                newQuantity = parseInt(cartQuantity);
             }
             else{
-                newQuantity = parseInt(checkoutQuantity) + 1;
+                newQuantity = parseInt(checkoutQuantity);
             }
-
-            $('.cart-quantity-'+productId+'-'+variantId).text(newQuantity);
-            $('.checkout-quantity-'+productId+'-'+variantId).text(newQuantity);
-
+            //
+            // $('.cart-quantity-'+productId+'-'+variantId).text(newQuantity);
+            // $('.checkout-quantity-'+productId+'-'+variantId).text(newQuantity);
+            updateTotal();
             $.ajax({
                 url: route('update.quantity'),
                 type: "GET",
                 data: {
                     product_id: productId,
                     variant_id: variantId,
-                    quantity: newQuantity,
+                    quantity: newQuantity + 1,
+                    credit : credit,
                 },
                 success: function (response) {
-                    count();
-                    updateTotal();
+                    $('.cart-quantity-'+productId+'-'+variantId).text(response.quantity);
+                    $('.checkout-quantity-'+productId+'-'+variantId).text(response.quantity);
+                    // $('.cart-' + response.cartId).find('.quantity-cart').text(response.quantity)
+                    $('.count').text(response.count)
+                    $('.subtotal').text(response.subtotal)
+                    $('.total').text(response.total)
+                    $('.credit').text(response.credit)
+                    $('.checkout-subtotal').text(response.subtotal)
+                    $('.checkout-total').text(response.total)
                 }
             });
         });
@@ -171,13 +192,13 @@ $(document).ready(function () {
             if(cartQuantity > 1 || checkoutQuantity > 1){
                 let newQuantity = 0;
                 if(cartQuantity){
-                    newQuantity = parseInt(cartQuantity) - 1;
+                    newQuantity = parseInt(cartQuantity);
                 }
                 else{
-                    newQuantity = parseInt(checkoutQuantity) - 1;
+                    newQuantity = parseInt(checkoutQuantity);
                 }
-                $('.cart-quantity-'+productId+'-'+variantId).text(newQuantity);
-                $('.checkout-quantity-'+productId+'-'+variantId).text(newQuantity);
+                // $('.cart-quantity-'+productId+'-'+variantId).text(newQuantity);
+                // $('.checkout-quantity-'+productId+'-'+variantId).text(newQuantity);
 
                 $.ajax({
                     url: route('update.quantity'),
@@ -185,11 +206,19 @@ $(document).ready(function () {
                     data: {
                         product_id: productId,
                         variant_id: variantId,
-                        quantity: newQuantity,
+                        quantity: newQuantity - 1,
                     },
                     success: function (response) {
-                        count();
-                        updateTotal();
+                        $('.cart-quantity-'+productId+'-'+variantId).text(response.quantity);
+                        $('.checkout-quantity-'+productId+'-'+variantId).text(response.quantity);
+                        // $('.cart-' + response.cartId).find('.quantity-cart').text(response.quantity)
+                        $('.count').text(response.count)
+                        $('.subtotal').text(response.subtotal)
+                        $('.total').text(response.total)
+                        $('.checkout-subtotal').text(response.subtotal)
+                        $('.checkout-total').text(response.total)
+                        // count();
+                        // updateTotal();
                     }
                 });
             }
@@ -707,6 +736,24 @@ $(document).ready(function () {
         });
     });
 
+    //user in edit
+    $(document).on('click' , '.add-credit' , function (){
+        let creditReason =  $('#reason').val();
+        let creditAmount = $('.credit-amount').val();
+
+        $.ajax({
+            url: route('credit.add'),
+            method: "GET",
+            data: {
+                'reason' : creditReason,
+                'amount' : creditAmount,
+            },
+            success: function (response) {;
+            },
+        });
+    })
+
+
     //checkout
 
     $('#cardButton').hide();
@@ -716,6 +763,7 @@ $(document).ready(function () {
         $('#cardButton').show();
 
         let total = $('.checkout-total').text();
+        let credit = $('.checkout-credit').text();
         const stripe = Stripe(window.stripePublicKey);
         let elements = null;
         $.ajax({
@@ -753,6 +801,7 @@ $(document).ready(function () {
                 let myForm = $('#checkoutForm')[0];
                 let formData = new FormData(myForm);
                 formData.append('total' ,total);
+                formData.append('credit' , credit);
                 formData.append('paymentMethodId' , setupIntent.payment_method);
 
                 $('.checkout-cart').each(function () {
@@ -792,7 +841,12 @@ $(document).ready(function () {
             url: route('order.index'),
         },
         columns: [
-            { data: 'id', name: 'id' },
+            {
+                data: function (row){
+                    return  '<a href="'+ route('order.show' , row.id)+'" data-id="'+ row.id +'" >'+ row.id +'</a>';
+                },
+                name: 'id'
+            },
             {
                data : 'user name',
                 name: 'user name'
@@ -823,27 +877,30 @@ $(document).ready(function () {
 
 
     function updateTotalOrder() {
-        // let totalPrice = 0;
-        // $('.quantity-order').each(function () {
-        //     let quantity = parseInt($(this).text());
-        //     let priceText = $(this).closest('.row').find('.order-price').text();
-        //     let price = parseInt(priceText);
-        //     let total = quantity * price;
-        //     totalPrice += total;
-        // });
-        //
-        // $('.order-total').text(totalPrice);
-        // $('.order-subtotal').text(totalPrice);
+        let totalPrice = 0;
+        $('.quantity-order').each(function () {
+            let quantity = parseInt($(this).text());
+            let priceText = $(this).closest('.row').find('.order-price').text();
+            let price = parseInt(priceText);
+            let total = quantity * price;
+            totalPrice += total;
+        });
+
+        let credit = $('.order-credit').text();
+        if(credit){
+            totalPrice -= credit
+        }
+
+        $('.order-total').text(totalPrice);
+        $('.order-subtotal').text(totalPrice);
     }
     updateTotalOrder()
 
     $(document).on('click' , '.order-increment' , function (){
         let productId = $(this).parents('.d-flex').data('product');
         let variantId = $(this).parents('.d-flex').data('variant');
-        let orderQuantity = $(this).parents('.d-flex').find('.quantity-order').text();
-
+        let orderQuantity = $(this).parents('.d-flex').find('.order-quantity-'+productId+'-'+variantId).text();
         let newQuantity = parseInt(orderQuantity) + 1;
-
         $('.order-quantity-'+productId+'-'+variantId).text(newQuantity);
 
         updateTotalOrder()
@@ -852,7 +909,7 @@ $(document).ready(function () {
     $(document).on('click' , '.order-decrement' , function (){
         let productId = $(this).parents('.d-flex').data('product');
         let variantId = $(this).parents('.d-flex').data('variant');
-        let orderQuantity = $(this).parents('.d-flex').find('.quantity-order').text();
+        let orderQuantity = $(this).parents('.d-flex').find('.order-quantity-'+productId+'-'+variantId).text();
 
         let newQuantity = 0;
 
@@ -976,5 +1033,24 @@ $(document).ready(function () {
         });
 
     })
+
+    //order in show
+
+    $(document).on('click' , '#editOrderDetails' , function (){
+        let myForm = $('#editOrderForm')[0];
+        let formData = new FormData(myForm);
+        let editId = $('#updateField').find('.edit-id').val();
+        console.log(editId)
+        $.ajax({
+            url: route('order.update.details', editId),
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+
+            },
+        });
+    });
 
 });

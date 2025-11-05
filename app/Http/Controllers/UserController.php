@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\CreditLog;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
@@ -75,7 +76,9 @@ class UserController extends Controller
 
         $user = User::find($id);
         $roles = Role::all();
-        return view('users.edit', compact('user' , 'roles'));
+        $credits = CreditLog::where('user_id', $id)->orderByDesc('id')->get();
+        $currentCredit = $credits->first();
+        return view('users.edit', compact('user' , 'roles' , 'credits' , 'currentCredit'));
     }
 
     /**
@@ -96,5 +99,22 @@ class UserController extends Controller
     {
         $user = User::find($id);
         $user->delete();
+    }
+
+    public function creditAdd(Request $request)
+    {
+        $user = auth()->user();
+        $input = $request->all();
+
+        CreditLog::create([
+           'user_id' => $user->id,
+            'amount' => $input['amount'],
+            'previous_balance' => $user->credit ,
+            'new_balance' => $user->credit +  $input['amount'],
+            'reason' => $input['reason'],
+        ]);
+
+        $user->credit  = $user->credit +  $input['amount'];
+        $user->save();
     }
 }

@@ -41,23 +41,36 @@
                 @endforeach
             </div>
                 <div class="position-absolute w-100 px-2" style="bottom: 20px; left:0;">
-                    <div class="d-flex justify-content-between my-2" id="subtotal">
-                        <label>Subtotal</label>
-                        <div class="d-flex">
-                            <span>$</span>
-                            <span class="subtotal">{{\Cart::getSubTotal()}}</span>
+                    @if(!\Cart::isEmpty())
+                        <div class="d-flex justify-content-between my-2" id="subtotal">
+                            <label>Subtotal</label>
+                            <div class="d-flex">
+                                <span>$</span>
+                                <span class="subtotal">{{\Cart::getSubTotalWithoutConditions()}}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="d-flex justify-content-between my-2">
-                        <label>Total</label>
-                        <div class="d-flex">
-                            <span>$</span>
-                            <span class="total">{{\Cart::getTotal()}}</span>
+
+                        @if($credit != 0)
+                            <div class="d-flex justify-content-between my-2" id="credit">
+                                <label>Credit</label>
+                                <div class="d-flex">
+                                    <span>$</span>
+                                    <span class="credit">{{min(\Cart::getSubTotalWithoutConditions() , $credit)}}</span>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="d-flex justify-content-between my-2">
+                            <label>Total</label>
+                            <div class="d-flex">
+                                <span>$</span>
+                                <span class="total">{{\Cart::getTotal()}}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="d-flex justify-content-center">
-                        <div class="btn btn-success w-100 checkoutBtn">Checkout</div>
-                    </div>
+                        <div class="d-flex justify-content-center">
+                            <div class="btn btn-success w-100 checkoutBtn">Checkout</div>
+                        </div>
+                    @endif
                 </div>
 {{--        @endif--}}
     </div>

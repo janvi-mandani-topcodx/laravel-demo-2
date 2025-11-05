@@ -39,6 +39,8 @@ Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
     Route::resource('product' , ProductController::class);
     Route::resource('permission' , PermissionController::class);
     Route::resource('order' , OrderController::class);
+
+    Route::get('/credit/add' , [UserController::class , 'creditAdd'])->name('credit.add');
     Route::get('/delete-variant' , [ProductController::class , 'deleteVariant'])->name('delete.variant');
     Route::get('/productCart/view' , [ProductCartController::class , 'productCartView'])->name('product.cart.view');
     Route::get('/cart' , [ProductCartController::class , 'addToCart'])->name('add.cart');
@@ -48,6 +50,7 @@ Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
     Route::get('/checkout/stripe/payment' , [CheckoutController::class ,  'cashierPaymentIntent'])->name('cashier.payment.intent');
     Route::get('/payment/success' , [OrderController::class ,  'paymentSuccess'])->name('payment.success');
     Route::get('/search/product/items' , [OrderController::class ,  'searchProductItems'])->name('search.order.items');
+    Route::put('order/edit/details/{id}', [OrderController::class, 'orderDetailsEdit'])->name('order.update.details');
     Route::get('/message-store' , [ChatController::class , 'messageStore'])->name('message.store');
     Route::get('/message-get' , [ChatController::class , 'allMessageGet'])->name('chat.get.messages');
     Route::get('/search-user' , [ChatController::class , 'SearchUser'])->name('search.user');

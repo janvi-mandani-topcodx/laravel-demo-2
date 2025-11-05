@@ -104,37 +104,54 @@
                                 <div class="col-6">
                                     <div><strong>{{ $order->product->title }}</strong></div>
                                     <div>Size: {{ $order->variant->title }}</div>
-                                    <div class="d-flex align-items-center mt-2">
-                                        <button class="btn btn-sm btn-outline-secondary order-decrement me-2 decrement-order-{{ $order->product->id }}-{{ $order->variant->id }}">-</button>
-                                        <span class="fw-bold quantity-order order-quantity-{{ $order->product->id }}-{{ $order->variant->id }}">{{ $order->quantity }}</span>
-                                        <button class="btn btn-sm btn-outline-secondary order-increment ms-2 increment-order-{{ $order->product->id }}-{{ $order->variant->id }}">+</button>
+                                    <div class="d-flex align-items-center mt-2"  data-product="{{$order->product->id}}" data-variant="{{$order->variant->id}}" >
+                                            <button class="btn btn-sm btn-outline-secondary order-decrement me-2 decrement-order-{{ $order->product->id }}-{{ $order->variant->id }}">-</button>
+                                            <span class="fw-bold quantity-order order-quantity-{{ $order->product->id }}-{{ $order->variant->id }}">{{ $order->quantity }}</span>
+                                            <button class="btn btn-sm btn-outline-secondary order-increment ms-2 increment-order-{{ $order->product->id }}-{{ $order->variant->id }}">+</button>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="col-4 text-end">
-                                    <button type="button"  class="btn-close mb-2 close-product-order"  aria-label="Close" data-product="{{ $order->product->id }}"   data-id="{{ $order->id }}"> </button>
-                                    <div>
-                                        <span>$</span>
-                                        <span class="order-price">{{ $order->variant->price }}</span>
+                                    <div class="col-4 text-end">
+                                        <button type="button"  class="btn-close mb-2 close-product-order"  aria-label="Close" data-product="{{ $order->product->id }}"   data-id="{{ $order->id }}"> </button>
+                                        <div>
+                                            <span>$</span>
+                                            <span class="order-price">{{ $order->variant->price }}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            @endif
+                        @endforeach
+                    </div>
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between mb-2" id="subtotal">
+                            <span>Subtotal:</span>
+                            <span>
+                                $
+                                <span class="order-subtotal"></span>
+                            </span>
+                        </div>
+                        @if($orderData->orderDiscounts)
+                            @foreach($orderData->orderDiscounts as $orderDiscount)
+                                <div class="d-flex justify-content-between mb-2" id="credit">
+                                    <span>Credit:</span>
+                                    <span>
+                                    $
+                                    <span class="order-credit">{{$orderDiscount->amount}}</span>
+                                </span>
+                                </div>
+                            @endforeach
                         @endif
-                    @endforeach
-                </div>
-                <div class="border-top pt-3">
-                    <div class="d-flex justify-content-between mb-2" id="subtotal">
-                        <span>Subtotal:</span>
-                        <span>$<span class="order-subtotal"></span></span>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Total:</span>
+                            <span>
+                                $
+                                <span class="order-total"></span>
+                            </span>
+                        </div>
+                        <button type="button" class="btn btn-success w-100 edit-order">Update Order</button>
                     </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Total:</span>
-                        <span>$<span class="order-total"></span></span>
-                    </div>
-                    <button type="button" class="btn btn-success w-100 edit-order">Update Order</button>
                 </div>
             </div>
         </div>
-    </div>
-    </div>
-@endsection
+        </div>
+    @endsection

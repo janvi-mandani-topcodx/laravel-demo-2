@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-//use App\Models\Cart;
 use App\Models\Product;
 use Darryldecode\Cart;
 use Illuminate\Http\Request;
@@ -12,27 +11,38 @@ class ProductCartController extends Controller
 
     public function productCartView()
     {
+        $user = auth()->user();
         $products = Product::where('status' , 1)->get();
-        $role = auth()->user()->getRoleNames()->first();
-//        $carts = Cart::with(['product' , 'productVariant'])->where('user_id' , auth()->id())->get();
-        return view('product_cart.index' , compact('products' , 'role' ));
+        $role = $user->getRoleNames()->first();
+        $credit = $user->credit;
+        return view('product_cart.index' , compact('products' , 'role' , 'credit'));
     }
 
     public function addToCart(Request $request){
         $input = $request->all();
         $html = '';
-
-//        $cartCount = Cart::where('user_id' , auth()->id())->count();
-//        $cartEdit = Cart::where('user_id',auth()->id())->where('product_id',$input['product_id'])->where('variant_id' , $input['variant_id'])->first();
-//        if($cartEdit){
-//            $cartEdit->quantity = $cartEdit->quantity + 1;
-//            $cartEdit->save();
-//            return response()->json([
-//                'quantity' => $cartEdit->quantity,
-//                'cartId' =>$cartEdit->id,
-//            ]);
-//        }
-//        else{
+        $credit = auth()->user()->credit;
+        $alreadyAdded = \Cart::get($input['variant_id']);
+        if($alreadyAdded){
+            $cart = \Cart::update($input['variant_id'],[
+                'quantity' => [
+                    'relative' => false,
+                    'value' => $alreadyAdded['quantity'] + 1,
+                ],
+            ]);
+            $subtotal = \Cart::getSubTotalWithoutConditions();
+            $credit = min($subtotal , $credit);
+            $total = $subtotal - $credit;
+            return response()->json([
+                'quantity' =>  $alreadyAdded['quantity'],
+                'cartId' =>$input['variant_id'],
+                'count' => \Cart::getTotalQuantity(),
+                'subtotal' => $subtotal,
+                'credit' => $credit,
+                'total' => $total,
+            ]);
+        }
+        else{
         \Cart::add([
                 'id' => $input['variant_id'],
                 'name' => $input['title'],
@@ -44,15 +54,8 @@ class ProductCartController extends Controller
                     'product_id' => $input['product_id'],
                 ]
             ]);
-//        $cartCount = Cart::getTotalQuantity();
-//            $cart = Cart::create([
-//                'user_id' => auth()->id(),
-//                'product_id' => $input['product_id'],
-//                'variant_id' => $input['variant_id'],
-//                'quantity' => $input['quantity'],
-//            ]);
             $html .= '
-                    <div class="row my-3 bg-light cart" data-product="'.$input['product_id'].'" data-variant="'.$input['variant_id'].'" >
+                    <div class="row my-3 bg-light cart cart-'.$input['variant_id'].'" data-product="'.$input['product_id'].'" data-variant="'.$input['variant_id'].'" >
                         <div class="col">
                               <img class="card-img-top rounded" src="'.$input['image'].'" alt="Card image cap" style="height: 100px; width: 100px;">
                         </div>
@@ -80,21 +83,43 @@ class ProductCartController extends Controller
                         </div>
                     </div>
                 ';
-//            if($cartCount == 1){
+            \Cart::clearCartConditions();
+            $creditAmount = min(\Cart::getSubTotal() , $credit);
+            $subtotal = \Cart::getSubTotal();
+            if(\Cart::getTotalQuantity() == 1) {
+                if ($credit != 0) {
+                    $condition = new \Darryldecode\Cart\CartCondition([
+                        'name' => 'credit discount',
+                        'type' => 'credit',
+                        'target' => 'subtotal',
+                        'value' => -$creditAmount,
+                    ]);
+                    \Cart::condition($condition);
+                }
                 $html .= '
                 <div class="position-absolute w-100 px-2" style="bottom: 20px; left:0;">
                     <div class="d-flex justify-content-between my-2" id="subtotal">
                         <label>Subtotal</label>
                         <div class="d-flex">
-                            <span>$</span>
-                            <span class="subtotal">'. \Cart::getsubtotal() .'</span>
+                            <span >$</span>
+                            <span class="subtotal">' .$subtotal . '</span>
                         </div>
-                    </div>
-                    <div class="d-flex justify-content-between my-2">
+                    </div>';
+                   if($credit != 0){
+                        $html .= '
+                         <div class="d-flex justify-content-between my-2" id="credit">
+                        <label>Credit</label>
+                        <div class="d-flex">
+                            <span>$</span>
+                            <span class="credit">'. $creditAmount.'</span>
+                        </div>
+                    </div>';
+                   }
+                    $html .= '<div class="d-flex justify-content-between my-2">
                         <label>Total</label>
                         <div class="d-flex">
                             <span>$</span>
-                            <span class="total">'. \Cart::getTotal() .'</span>
+                            <span class="total">' . \Cart::getTotal() . '</span>
                         </div>
                     </div>
                     <div class="d-flex justify-content-center">
@@ -102,28 +127,50 @@ class ProductCartController extends Controller
                     </div>
                 </div>
             ';
-//            }
-
-
-            return response()->json(['html' => $html]);
+            }
+        }
+            return response()->json([
+                'html' => $html ,
+                'subtotal' => $subtotal,
+                'total' => \Cart::getTotal(),
+                'count' => \Cart::getTotalQuantity(),
+                'credit' => $creditAmount,
+            ]);
     }
 
 
-//    public  function updateQuantity(Request $request)
-//    {
-//        $input = $request->all();
-////        $cart = Cart::where('user_id' , auth()->id())->where('product_id',$input['product_id'])->where('variant_id',$input['variant_id'])->first();
-////        $cart->quantity = $input['quantity'];
-////        $cart->save();
-//    }
+    public  function updateQuantity(Request $request)
+    {
+        $input = $request->all();
+        $credit = auth()->user()->credit;
+        \Cart::update($input['variant_id'],[
+            'quantity' => [
+                'relative' => false,
+                'value' => $input['quantity'],
+            ],
+        ]);
+        $subtotal = \Cart::getSubTotalWithoutConditions();
+        $credit = min($subtotal , $credit);
+        $total = $subtotal - $credit;
+        return response()->json([
+            'cartId' =>$input['variant_id'],
+            'quantity' => $input['quantity'],
+            'total' => $total,
+            'subtotal' => $subtotal,
+            'count' => \Cart::getTotalQuantity(),
+            'credit' => $credit ,
+        ]);
+    }
 
     public function cartItemClose(Request $request)
     {
         $input = $request->all();
-//        Cart::find($input['delete_id'])->delete();
         \Cart::remove($input['delete_id']);
         return response()->json([
             'status' => 'success',
+            'total' => \Cart::getTotal(),
+            'subtotal' => \Cart::getSubTotal(),
+            'count' => \Cart::getTotalQuantity(),
         ]);
     }
 }

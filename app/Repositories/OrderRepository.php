@@ -2,8 +2,8 @@
 
 namespace App\Repositories;
 
-use App\Models\Cart;
 use App\Models\Order;
+use Darryldecode\Cart;
 use Illuminate\Support\Arr;
 
 class OrderRepository extends BaseRepository
@@ -40,7 +40,17 @@ class OrderRepository extends BaseRepository
             'refunded_amount' => 0,
         ]);
 
-        Cart::where('user_id', auth()->id())->delete();
+        if ($input['credit']){
+            $order->orderDiscounts()->create([
+                'amount' => $input['credit'],
+                'discount_name' =>  'credit',
+            ]);
+        }
+
+        auth()->user()->credit -= $input['credit'];
+        auth()->user()->save();
+        \Cart::clear();
+        \Cart::clearCartConditions();
     }
 
     public function update($input  , $order )

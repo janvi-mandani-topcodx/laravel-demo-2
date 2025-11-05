@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Repositories\OrderRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Yajra\DataTables\Facades\DataTables;
 
 class OrderController extends Controller
@@ -70,7 +71,9 @@ class OrderController extends Controller
 
     public function show(string $id)
     {
-        //
+        $order = Order::find($id);
+        $orderDetails = json_decode($order->shipping_details);
+        return view('order.show' , compact('order' , 'orderDetails'));
     }
 
     /**
@@ -193,5 +196,19 @@ class OrderController extends Controller
             }
             return response()->json(['html' => $html]);
         }
+    }
+
+    public function orderDetailsEdit(Request $request)
+    {
+        $input = $request->all();
+        $order = Order::find($input['edit_id']);
+        $shipping = Arr::only($input, ['first_name', 'last_name', 'address', 'state' , 'country']);
+        $shippingDetails = json_encode($shipping);
+        $order->update([
+            'user_id' => auth()->id(),
+            'shipping_details' => $shippingDetails,
+            'delivery' => $input['delivery'],
+            'total' => $order->total,
+        ]);
     }
 }
