@@ -14,7 +14,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
-    private $User;
+    private $userRepo;
 
     public function __construct(UserRepository $userRepository)
     {
