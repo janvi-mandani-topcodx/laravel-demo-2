@@ -37,7 +37,7 @@
                                                 <span class="variant-sku-error text-danger"></span>
                                             </div>
                                             <div class="col">
-                                                <label class="form-label fw-bold" for="wholesalerPrice" >wholesaler Price</label>
+                                                <label class="form-label fw-bold" for="wholesalerPrice" >Wholesaler Price</label>
                                                 <input type="text" class="form-control single-variant-wholesaler-price" name="wholesaler_price[]">
                                                 <span class="variant-wholesaler-price-error text-danger"></span>
                                             </div>
