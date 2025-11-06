@@ -29,14 +29,14 @@ class RoleController extends Controller
         $permissions = Permission::all();
         $permissionDetails = [];
         foreach ($permissions as $permission) {
+            $name = Str::of($permission->name)->replace('_', ' ');
             $permissionDetails[] = [
                 'id' => $permission->id,
-                'name' => Str::of($permission->name)->replace('_', ' ')
+                'name' => ucwords($name),
             ];
         }
         return view('roles.create' , compact('permissionDetails'));
     }
-
 
     public function store(CreateRoleRequest $request)
     {
@@ -60,7 +60,6 @@ class RoleController extends Controller
 
 
 
-
     public function edit(string $id)
     {
         $role = Role::with('permissions')->find($id);
@@ -68,14 +67,14 @@ class RoleController extends Controller
         $permissionDetails = [];
 
         foreach ($permissions as $permission) {
+            $name = Str::of($permission->name)->replace('_', ' ');
             $permissionDetails[] = [
                 'id' => $permission->id,
-                'name' => Str::of($permission->name)->replace('_', ' ')
+                'name' => ucwords($name),
             ];
         }
         return view('roles.edit', compact('role' , 'permissions' , 'permissionDetails'));
     }
-
 
     public function update(UpdateRoleRequest $request, string $id)
     {
@@ -87,17 +86,13 @@ class RoleController extends Controller
         ]);
 
 
-        if(isset($input['permission']))
-        {
-            $permissions = Permission::find($input['permission']);
-            $role->syncPermissions($permissions);
-        }
-        else{
+        if (isset($input['permission'])) {
+            $role->syncPermissions($request->permission);
+        } else {
             $role->syncPermissions([]);
         }
         return redirect()->route('role.index');
     }
-
 
     public function destroy(string $id)
     {

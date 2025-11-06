@@ -631,7 +631,7 @@ $(document).ready(function () {
         },
         columns: [
             { data: 'id', name: 'id' },
-            {data: 'first_name', name: 'first name' },
+            {data: 'name', name: 'name' },
             {
                 data: function (row) {
                     let url = route('role.edit' , row.id );
