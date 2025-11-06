@@ -50,7 +50,7 @@ class UserController extends Controller
     public function store(CreateUserRequest $request)
     {
         $input = $request->all();
-        $this->User->store($input);
+        $this->UserRepo->store($input);
 
         return redirect()->route('user.index');
     }
