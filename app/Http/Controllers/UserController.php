@@ -33,6 +33,9 @@ class UserController extends Controller
                 ->editColumn('hobbies' , function ($user) {
                     return json_decode($user->hobbies);
                 })
+                ->editColumn('gender' , function ($user) {
+                    return ucfirst($user->gender);
+                })
                 ->make(true);
         }
         return view('users.index', compact('user'));
