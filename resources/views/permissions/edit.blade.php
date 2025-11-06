@@ -1,6 +1,6 @@
 @extends('layout')
 @section('contents')
-    <div class="bg-blue-100">
+    <div class="bg-blue-100 min-vh-100 ">
         <section class="h-100 gradient-custom">
             <div class="container py-5 h-100">
                 <div class="row justify-content-center align-items-center h-100">

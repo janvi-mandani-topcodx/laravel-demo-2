@@ -410,12 +410,7 @@ $(document).ready(function () {
         },
         columns: [
             { data: 'id', name: 'id' },
-            {
-                data: function (row){
-                    return  '<a href="'+ route('permission.show' , row.id)+'" data-id="'+ row.id +'">'+ row.name +'</a>';
-                },
-                name: 'first name'
-            },
+            { data: 'name', name: 'name' },
             {
                 data: function (row) {
                     let url = route('permission.edit' , row.id );

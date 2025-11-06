@@ -11,35 +11,32 @@ use Yajra\DataTables\Facades\DataTables;
 
 class PermissionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index(Request $request)
     {
         $permission = Permission::all();
         if ($request->ajax()) {
             return DataTables::of(Permission::get())
+                ->editColumn('name', function ($permission) {
+                    $name = Str::of($permission->name)->replace('_', ' ');
+                    return ucwords($name);
+                })
                 ->make(true);
         }
         return view('permissions.index', compact('permission'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
         return view('permissions.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(CreatePermissionRequest $request)
     {
-        $name = Str::of($request->name)->replace(' ', '_');
         Permission::create([
-            'name' => $name,
+            'name' => Str::of($request->name)->replace(' ', '_'),
             'guard_name' => 'web'
         ]);
 
@@ -47,17 +44,7 @@ class PermissionController extends Controller
         return redirect()->route('permission.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         $permission = Permission::find($id);
@@ -67,9 +54,8 @@ class PermissionController extends Controller
 
     public function update(UpdatePermissionRequest $request, string $id)
     {
-        $name = Str::of($request->name)->replace(' ', '_');
         Permission::find($id)->update([
-            'name' => $name,
+            'name' => Str::of($request->name)->replace(' ', '_'),
         ]);
         return redirect()->route('permission.index');
     }
