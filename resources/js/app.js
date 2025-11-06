@@ -446,41 +446,58 @@ $(document).ready(function () {
         });
     });
 
-
     //product in create
 
-    $(document).on('click' , '#addVariant' , function (){
-        let row =`
-                    <div class="row pt-5 single-variant">
-                        <div class="col">
-                            <label class="form-label fw-bold" for="title">Title</label>
-                            <input type="text" class="form-control" name="variant_title[]">
-                        </div>
-                        <div class="col">
-                            <label class="form-label fw-bold" for="price">Price</label>
-                            <input type="text" class="form-control" name="price[]">
-                        </div>
-                        <div class="col">
-                            <label class="form-label fw-bold" for="sku" >Sku</label>
-                            <input type="text" class="form-control" name="sku[]">
-                        </div>
-                        <div class="col">
-                            <label class="form-label fw-bold" for="wholesalerPrice" >wholesaler Price</label>
-                            <input type="text" class="form-control" name="wholesaler_price[]">
-                        </div>
-                         <div class="col d-flex justify-content-center align-items-center">
-                             <input type="button" class="btn btn-danger delete-variant" value="Delete" style="width: 114px; height: 44px;">
-                         </div>
-                    </div>
-                `;
-        $('.variants').append(row)
-    })
+    $(document).on('click' , '.product-create-submit-btn' , function (e){
+        e.preventDefault()
+        let myForm = $('#productCreateForm')[0];
+        let formData = new FormData(myForm);
+        $.ajax({
+            url: route('product.store'),
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function () {
+                window.location.href = route('product.index')
+            },
+            error: function (response) {
+                let errors = response.responseJSON.errors;
 
-    $(document).on('click' , '.delete-variant' , function (){
-        if($('.single-variant').length > 1){
-            $(this).parents('.single-variant').remove();
-        }
+                if (errors.title) {
+                    $('.product-title-error').text(errors.title[0]);
+                }
+
+                if (errors.description) {
+                    $('.product-description-error').text(errors.description[0]);
+                }
+
+                for(let i=0; i< $('.single-variant-title').length; i++){
+                    if (errors['variant_title.'+ i]) {
+                        $($('.single-variant-title')[i]).siblings('.variant-title-error').text(errors['variant_title.' + i][0]);
+                    }
+                }
+                for(let i=0; i< $('.single-variant-price').length; i++){
+                    if (errors['price.'+ i]) {
+                        $($('.single-variant-price')[i]).siblings('.variant-price-error').text(errors['price.' + i][0]);
+                    }
+                }
+                for(let i=0; i< $('.single-variant-sku').length; i++){
+                    if (errors['sku.'+ i]) {
+                        $($('.single-variant-sku')[i]).siblings('.variant-sku-error').text(errors['sku.' + i][0]);
+                    }
+                }
+                for(let i=0; i< $('.single-variant-wholesaler-price').length; i++){
+                    if (errors['wholesaler_price.'+ i]) {
+                        $($('.single-variant-wholesaler-price')[i]).siblings('.variant-wholesaler-price-error').text(errors['wholesaler_price.' + i][0]);
+                    }
+                }
+            },
+        });
+
     });
+
+
     //product in edit and create
 
     $('#customFile').on('change', function(e) {
@@ -495,8 +512,13 @@ $(document).ready(function () {
                 reader.onload = function(e) {
                     const img = document.createElement('img');
                     img.src = e.target.result;
-                    img.style.maxWidth = '150px';
-                    img.style.margin = '5px';
+                    img.style.maxWidth = '100px';
+                    img.style.padding = '.25rem';
+                    img.style.backgroundColor = '#fff';
+                    img.style.border = "1px solid #dee2e6";
+                    img.style.borderRadius = "0.375rem";
+                    img.style.height = "auto";
+                    img.style.marginTop = '0.5rem';
                     preview.append(img);
                 };
                 reader.readAsDataURL(file);
@@ -504,31 +526,32 @@ $(document).ready(function () {
         }
     });
 
-
-    //product in edit
-
     $(document).on('click' , '#addVariant' , function (){
         let row =`
                     <div class="row pt-5 single-variant">
                         <div class="col">
                             <label class="form-label fw-bold" for="title">Title</label>
-                            <input type="text" class="form-control" name="variant_title[]">
+                            <input type="text" class="form-control single-variant-title"  name="variant_title[]">
+                            <span class="variant-title-error text-danger"></span>
                         </div>
                         <div class="col">
                             <label class="form-label fw-bold" for="price">Price</label>
-                            <input type="text" class="form-control" name="price[]">
+                            <input type="text" class="form-control single-variant-price" name="price[]">
+                            <span class="variant-price-error text-danger"></span>
                         </div>
                         <div class="col">
                             <label class="form-label fw-bold" for="sku" >Sku</label>
-                            <input type="text" class="form-control" name="sku[]">
+                            <input type="text" class="form-control single-variant-sku" name="sku[]">
+                            <span class="variant-sku-error text-danger"></span>
                         </div>
                         <div class="col">
-                            <label class="form-label fw-bold" for="wholesalerPrice" >wholesaler Price</label>
-                            <input type="text" class="form-control" name="wholesaler_price[]">
+                            <label class="form-label fw-bold" for="wholesalerPrice">Wholesaler Price</label>
+                            <input type="text" class="form-control single-variant-wholesaler-price" name="wholesaler_price[]">
+                            <span class="variant-wholesaler-price-error text-danger"></span>
                         </div>
-                        <div class="col d-flex justify-content-center align-items-center">
-                            <input type="button" class="btn btn-danger delete-variant" value="Delete" style="width: 114px; height: 44px;">
-                        </div>
+                         <div class="col d-flex justify-content-center align-items-center">
+                             <input type="button" class="btn btn-danger delete-variant" value="Delete" style="width: 114px; height: 44px;">
+                         </div>
                     </div>
                 `;
         $('.variants').append(row)
@@ -539,6 +562,59 @@ $(document).ready(function () {
             $(this).parents('.single-variant').remove();
         }
     });
+
+    //product in edit
+
+    $(document).on('click' , '.edit-product-submit-button' , function (e){
+        e.preventDefault()
+        let myForm = $('#editProductForm')[0];
+        let formData = new FormData(myForm);
+        let productId = $('.edit-product-id').val();
+        $.ajax({
+            url: route('product.update' , productId),
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function () {
+                window.location.href = route('product.index')
+            },
+            error: function (response) {
+                let errors = response.responseJSON.errors;
+
+                if (errors.title) {
+                    $('.product-title-error').text(errors.title[0]);
+                }
+
+                if (errors.description) {
+                    $('.product-description-error').text(errors.description[0]);
+                }
+
+                for(let i=0; i< $('.single-variant-title').length; i++){
+                    if (errors['variant_title.'+ i]) {
+                        $($('.single-variant-title')[i]).siblings('.variant-title-error').text(errors['variant_title.' + i][0]);
+                    }
+                }
+                for(let i=0; i< $('.single-variant-price').length; i++){
+                    if (errors['price.'+ i]) {
+                        $($('.single-variant-price')[i]).siblings('.variant-price-error').text(errors['price.' + i][0]);
+                    }
+                }
+                for(let i=0; i< $('.single-variant-sku').length; i++){
+                    if (errors['sku.'+ i]) {
+                        $($('.single-variant-sku')[i]).siblings('.variant-sku-error').text(errors['sku.' + i][0]);
+                    }
+                }
+                for(let i=0; i< $('.single-variant-wholesaler-price').length; i++){
+                    if (errors['wholesaler_price.'+ i]) {
+                        $($('.single-variant-wholesaler-price')[i]).siblings('.variant-wholesaler-price-error').text(errors['wholesaler_price.' + i][0]);
+                    }
+                }
+            },
+        });
+
+    });
+
 
     $(document).on('click' , '.delete-edit-variant' , function (){
         let editId = $(this).parents('.single-variant').find('.edit-id').val();
@@ -571,12 +647,7 @@ $(document).ready(function () {
         ],
         columns: [
             { data: 'id', name: 'id' },
-            {
-                data: function (row){
-                    return  '<a href="'+ route('product.show' , row.id)+'" data-id="'+ row.id +'">'+ row.title +'</a>';
-                },
-                name: 'title'
-            },
+            { data: 'title', name: 'title' },
             { data: 'description', name: 'description' },
             { data: 'status', name: 'status' , type: 'string' },
             {
@@ -626,7 +697,10 @@ $(document).ready(function () {
         },
         columns: [
             { data: 'id', name: 'id' },
-            {data: 'name', name: 'name' },
+            {
+                data: 'name',
+                name: 'name'
+            },
             {
                 data: function (row) {
                     let url = route('role.edit' , row.id );

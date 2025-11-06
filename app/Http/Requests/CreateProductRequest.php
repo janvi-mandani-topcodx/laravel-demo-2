@@ -37,8 +37,7 @@ class CreateProductRequest extends FormRequest
             'description.required' => 'Product Description is required',
             'variant_title.*.required' => 'Product Variant Title is required',
             'price.*.required' => 'Product Price is required',
-            'sku.*.required' => 'Product SKU is required',
-            'wholesaler_price.*.required' => 'Product Wholesaler Price is required',
+            'sku.*.required' => 'Product Sku is required',
         ];
     }
 }

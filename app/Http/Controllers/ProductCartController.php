@@ -15,6 +15,7 @@ class ProductCartController extends Controller
         $products = Product::where('status' , 1)->get();
         $role = $user->getRoleNames()->first();
         $credit = $user->credit;
+//        dd(\Cart::getConditions());
         return view('product_cart.index' , compact('products' , 'role' , 'credit'));
     }
 
@@ -32,14 +33,14 @@ class ProductCartController extends Controller
             ]);
             $subtotal = \Cart::getSubTotalWithoutConditions();
             $credit = min($subtotal , $credit);
-            $total = $subtotal - $credit;
+//            $total = $subtotal - $credit;
             return response()->json([
                 'quantity' =>  $alreadyAdded['quantity'],
                 'cartId' =>$input['variant_id'],
                 'count' => \Cart::getTotalQuantity(),
                 'subtotal' => $subtotal,
                 'credit' => $credit,
-                'total' => $total,
+                'total' => \Cart::getTotal(),
             ]);
         }
         else{
