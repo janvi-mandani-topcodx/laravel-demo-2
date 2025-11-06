@@ -60,9 +60,7 @@ class PermissionController extends Controller
         return redirect()->route('permission.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(string $id)
     {
         $permission = Permission::find($id);
