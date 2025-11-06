@@ -631,12 +631,7 @@ $(document).ready(function () {
         },
         columns: [
             { data: 'id', name: 'id' },
-            {
-                data: function (row){
-                    return  '<a href="'+ route('role.show' , row.id)+'" data-id="'+ row.id +'">'+ row.name +'</a>';
-                },
-                name: 'first name'
-            },
+            {data: 'first_name', name: 'first name' },
             {
                 data: function (row) {
                     let url = route('role.edit' , row.id );

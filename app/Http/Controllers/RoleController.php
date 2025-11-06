@@ -37,32 +37,30 @@ class RoleController extends Controller
         return view('roles.create' , compact('permissionDetails'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(CreateRoleRequest $request)
     {
         $input = $request->all();
-        $permissions = Permission::find($input['permission']);
         $role = Role::updateOrCreate([
             'name' => $input['name'],
             'guard_name' => 'web'
         ]);
-        $role->syncPermissions($permissions);
+
+        if(isset($input['permission']))
+        {
+            $permissions = Permission::find($input['permission']);
+            $role->syncPermissions($permissions);
+        }
+        else{
+            $role->syncPermissions([]);
+        }
+
        return redirect()->route('role.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+
+
     public function edit(string $id)
     {
         $role = Role::with('permissions')->find($id);
@@ -78,24 +76,29 @@ class RoleController extends Controller
         return view('roles.edit', compact('role' , 'permissions' , 'permissionDetails'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
     public function update(UpdateRoleRequest $request, string $id)
     {
         $input = $request->all();
         $role = Role::find($id);
-        $permissions = Permission::find($input['permission']);
-        $rolePermission = $role->update([
+
+        $role->update([
             'name' => $input['name'],
         ]);
-        $rolePermission->syncPermissions($permissions);
+
+
+        if(isset($input['permission']))
+        {
+            $permissions = Permission::find($input['permission']);
+            $role->syncPermissions($permissions);
+        }
+        else{
+            $role->syncPermissions([]);
+        }
         return redirect()->route('role.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(string $id)
     {
         $role = Role::find($id);

@@ -1,6 +1,6 @@
 <div  class="form-group my-2">
-    <label class="form-label fw-bold" for="name">Role name</label>
-    <input type="text" id="name" class="form-control" value="{{old('name')}}" name="name" placeholder="Enter Role name"/>
+    <label class="form-label fw-bold" for="name">Role Name</label>
+    <input type="text" id="name" class="form-control" value="{{old('name')}}" name="name" placeholder="Enter Role Name"/>
     <span class="text-danger">@error('name') {{$message}}  @enderror</span>
 </div>
 
