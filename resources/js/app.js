@@ -690,16 +690,11 @@ $(document).ready(function () {
         ],
         columns: [
             { data: 'id', name: 'id' },
-            {
-                data: function (row){
-                    return  '<a href="'+ route('user.show' , row.id)+'" data-id="'+ row.id +'">'+ row.first_name +'</a>';
-                },
-                name: 'first name'
-            },
+            { data: 'first_name',  name: 'first name' },
             { data: 'last_name', name: 'last name' },
             { data: 'email', name: 'email' },
             { data: 'hobbies', name: 'hobbies' },
-            { data: 'phone_number', name: 'phone number' , type: 'string'},
+            { data: 'phone_number', name: 'phone number' , type: 'string' },
             { data: 'gender', name: 'gender' },
             {
                 data: function (row) {
@@ -748,7 +743,35 @@ $(document).ready(function () {
                 'reason' : creditReason,
                 'amount' : creditAmount,
             },
-            success: function (response) {;
+            success: function (response) {
+                let html =  `<div class="row my-2 ">
+                    <div class="col">
+                        <span>${response.created_at}</span>
+                    </div>
+                    <div class="col">
+                        <span>${response.credit_amount}</span>
+                    </div>
+                    <div class="col">
+                        <span>${response.previous_balance}</span>
+                    </div>
+                    <div class="col">
+                        <span>${response.new_balance}</span>
+                    </div>
+                    <div class="col">
+                        <span>${response.reason}</span>
+                    </div>
+                </div>
+                <hr>`;
+
+                $('.show-new-credit').append(html);
+                $('.credit-amount').val(null);
+
+            },
+            error: function (response) {
+                let errors = response.responseJSON.errors;
+                if (errors.credit_amount) {
+                    $('.credit-amount').siblings('span').text(errors.credit_amount[0]);
+                }
             },
         });
     })

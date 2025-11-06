@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\CreditRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\CreditLog;
 use App\Models\User;
@@ -19,9 +20,7 @@ class UserController extends Controller
     {
         $this->User = $userRepository;
     }
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index(Request $request)
     {
         if(auth()->check()){
@@ -40,18 +39,14 @@ class UserController extends Controller
 
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
         $roles = Role::all();
         return view('users.create' , compact('roles'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(CreateUserRequest $request)
     {
         $input = $request->all();
@@ -60,17 +55,7 @@ class UserController extends Controller
         return redirect()->route('user.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
 
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
 
@@ -81,9 +66,7 @@ class UserController extends Controller
         return view('users.edit', compact('user' , 'roles' , 'credits' , 'currentCredit'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
     public function update(UpdateUserRequest $request, string $id)
     {
         $user = User::find($id);
@@ -92,21 +75,19 @@ class UserController extends Controller
         return redirect()->route('user.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(string $id)
     {
         $user = User::find($id);
         $user->delete();
     }
 
-    public function creditAdd(Request $request)
+    public function creditAdd(CreditRequest $request)
     {
         $user = auth()->user();
         $input = $request->all();
 
-        CreditLog::create([
+        $creditLog = CreditLog::create([
            'user_id' => $user->id,
             'amount' => $input['amount'],
             'previous_balance' => $user->credit ,
@@ -116,5 +97,13 @@ class UserController extends Controller
 
         $user->credit  = $user->credit +  $input['amount'];
         $user->save();
+
+        return response()->json([
+            'created_at' => $creditLog->created_at,
+            'credit_amount' => $creditLog->amount,
+            'previous_balance' => $creditLog->previous_balance,
+            'new_balance' => $creditLog->new_balance,
+            'reason' => $creditLog->reason,
+        ]);
     }
 }
