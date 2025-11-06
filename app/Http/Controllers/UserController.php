@@ -71,7 +71,7 @@ class UserController extends Controller
     {
         $user = User::find($id);
         $input = $request->all();
-        $this->User->update($input, $user);
+        $this->UserRepo->update($input, $user);
         return redirect()->route('user.index');
     }
 
