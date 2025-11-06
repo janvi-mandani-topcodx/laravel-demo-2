@@ -25,9 +25,9 @@ class UpdateProductRequest extends FormRequest
             'title' => 'required' ,
             'description' => 'required',
             'variant_title.*' => 'required',
-            'price.*' => 'required',
+            'price.*' => 'required | numeric',
             'sku.*' => 'required',
-            'wholesaler_price.*' => 'nullable',
+            'wholesaler_price.*' => 'nullable | numeric',
         ];
     }
     public function messages(): array{
