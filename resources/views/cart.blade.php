@@ -49,17 +49,15 @@
                                 <span class="subtotal">{{\Cart::getSubTotalWithoutConditions()}}</span>
                             </div>
                         </div>
-
-                        @if($credit != 0)
+                    @foreach(\Cart::getConditions() as $condition)
                             <div class="d-flex justify-content-between my-2" id="credit">
-                                <label>Credit</label>
+                                <label>{{ $condition->getName() }}</label>
                                 <div class="d-flex">
                                     <span>$</span>
-                                    <span class="credit">{{min(\Cart::getSubTotalWithoutConditions() , $credit)}}</span>
+                                    <span class="credit">{{ $condition->parsedRawValue }}</span>
                                 </div>
                             </div>
-                        @endif
-
+                    @endforeach
                         <div class="d-flex justify-content-between my-2">
                             <label>Total</label>
                             <div class="d-flex">

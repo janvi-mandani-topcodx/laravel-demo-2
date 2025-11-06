@@ -23,11 +23,9 @@
                     </div>
                 </section>
             </div>
-            <div class="col">
-{{--                @if(isset($carts))--}}
+            <div class="col my-4 ">
                     <div id="allCartData" style="overflow: auto; height: 85%; overflow-x: hidden;">
                         @foreach(\Cart::getContent() as $cart)
-{{--                            @if($cart->product && $cart->productVariant)--}}
                                 <div class="row my-3 bg-light cart-{{$cart['id']}} cart-product-{{$cart->attributes['product_id']}} checkout-cart" data-product="{{$cart->attributes['product_id']}}" data-variant="{{$cart['id']}}" data-cart="{{$cart['id']}}">
                                     <div class="col">
                                         <img class="card-img-top rounded" src="{{$cart->attributes['image']}}" alt="Product image" style="height: 100px; width: 100px;">
@@ -57,7 +55,6 @@
                                         </div>
                                     </div>
                                 </div>
-{{--                            @endif--}}
                         @endforeach
                     </div>
                     <div class="position-absolute px-2" style="bottom: 20px; width: 45%;">
@@ -65,18 +62,18 @@
                             <label>Subtotal</label>
                             <div class="d-flex">
                                 <span>$</span>
-                                <span class="checkout-subtotal">{{\Cart::getSubTotal()}}</span>
+                                <span class="checkout-subtotal">{{\Cart::getSubTotalWithoutConditions()}}</span>
                             </div>
                         </div>
-                        @if($credit != 0)
+                        @foreach(\Cart::getConditions() as $conditions)
                             <div class="d-flex justify-content-between my-2" id="checkout-credit">
-                                <label>Credit</label>
+                                <label>{{$conditions->getName()}}</label>
                                 <div class="d-flex">
                                     <span>$</span>
-                                    <span class="checkout-credit">{{min(\Cart::getSubTotal() , $credit)}}</span>
+                                    <span class="checkout-credit">{{$conditions->parsedRawValue}}</span>
                                 </div>
                             </div>
-                        @endif
+                        @endforeach
                         <div class="d-flex justify-content-between my-2">
                             <label>Total</label>
                             <div class="d-flex">
@@ -85,7 +82,6 @@
                             </div>
                         </div>
                     </div>
-{{--                @endif--}}
             </div>
         </div>
     </div>

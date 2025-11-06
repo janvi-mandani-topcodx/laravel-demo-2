@@ -38,7 +38,7 @@
                                 <a class="nav-link" href="{{route('product.index')}}">Products</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{route('product.cart.view')}}">Product Cart</a>
+                                <a class="nav-link" href="{{route('menu.view')}}">Menu</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{route('order.index')}}">Orders</a>

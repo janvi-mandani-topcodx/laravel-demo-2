@@ -10,7 +10,7 @@
                                 <div class="row justify-content-around">
                                     <div class="col-4 border rounded pt-3" style="height: 770px">
                                         <h5>Search</h5>
-                                        <input type="text" class="form-control" placeholder="search" id="search" name="search">
+                                        <input type="text" class="form-control" placeholder="search" id="searchChat" name="search">
                                         <div class="search-data">
 
                                         </div>

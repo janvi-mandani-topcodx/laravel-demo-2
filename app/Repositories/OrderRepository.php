@@ -17,15 +17,16 @@ class OrderRepository extends BaseRepository
     {
         $shipping = Arr::only($input, ['first_name', 'last_name', 'address', 'state' , 'country']);
         $shippingDetails = json_encode($shipping);
-
+        $allCartData = \Cart::getContent();
+        dd($allCartData);
         $order  = Order::create([
             'user_id' => auth()->id(),
             'shipping_details' => $shippingDetails,
             'delivery' => $input['delivery'],
-            'total' => $input['total'],
+            'total' => \Cart::getTotal(),
         ]);
 
-        foreach ($input['product_id'] as $key => $value) {
+        foreach ($allCartData as $key => $value) {
             $order->orderItems()->create([
                 'product_id' => $input['product_id'][$key],
                 'variant_id' => $input['variant_id'][$key],

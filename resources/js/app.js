@@ -74,7 +74,7 @@ $(document).ready(function () {
     });
 
 
-    //product_cart
+    //menu
         function variantSize(){
             $('.variant-button').each(function() {
                 let size = $(this);
@@ -88,6 +88,18 @@ $(document).ready(function () {
                 size.parents('.card').find('.price').attr('data-variant-title', variantName);
                 size.parents('.card').find('.price').attr('data-variant', variantId);
                 size.parents('.card').find('.price').attr('data-product-id', productId);
+
+                let quantityProduct = $('.product-' + productId).find('.increment-decrement-add');
+                quantityProduct.attr('data-variant' , variantId)
+
+                if(size.data("exitstVariant")){
+                    size.parents('.card').find('.add-to-cart').hide();
+                    size.parents('.card').find('.increment-decrement-add').show();
+                }
+                else{
+                    size.parents('.card').find('.add-to-cart').show();
+                    size.parents('.card').find('.increment-decrement-add').hide();
+                }
             });
         }
         variantSize();
@@ -102,6 +114,27 @@ $(document).ready(function () {
             product.text(price)
             product.data('variant', variant);
             product.data('variant-title', variantName);
+
+
+            $.ajax({
+                url: route('cart.check') ,
+                type: "GET",
+                data: {
+                    'variant_id' :  variant,
+                },
+                success: function (response) {
+                    if(response.status == 'success'){
+                        product.parents('.card').find('.add-to-cart').addClass('d-none');
+                        product.parents('.card').find('.increment-decrement-add').removeClass('d-none');
+                        product.parents('.card').find('.quantity-cart').text(response.quantity)
+                    }
+                    else if(response.status == 'error'){
+                        product.parents('.card').find('.add-to-cart').removeClass('d-none');
+                        product.parents('.card').find('.increment-decrement-add').addClass('d-none');
+                    }
+                },
+            });
+
         });
 
         $(document).on('click' , '.add-to-cart' , function (){
@@ -113,7 +146,6 @@ $(document).ready(function () {
             let image = product.data('url');
             let size = product.find('.price').data('sku');
             console.log(size)
-            // updateTotal();
             $.ajax({
                 url: route('add.cart') ,
                 type: "GET",
@@ -137,7 +169,10 @@ $(document).ready(function () {
                     $('.subtotal').text(response.subtotal)
                     $('.total').text(response.total)
                     $('.credit').text(response.credit)
-                    // updateTotal();
+                    product.find('.add-to-cart').hide();
+                    product.find('.increment-decrement-add').removeClass('d-none');
+                    product.find('.increment-decrement-add').show();
+                    product.find('.quantity-cart').text(1)
                     count();
                 },
             });
@@ -146,19 +181,19 @@ $(document).ready(function () {
         $(document).on('click' , '.increment' , function (){
             let productId = $(this).parents('.d-flex').data('product');
             let variantId = $(this).parents('.d-flex').data('variant');
-            let cartQuantity = $(this).parents('.d-flex').find('.quantity-cart').text();
+            let quantity = $(this).parents('.d-flex').find('.quantity-cart');
+            let cartQuantity = quantity.text();
             let checkoutQuantity = $(this).parents('.d-flex').find('.quantity-checkout').text();
             let credit = $('.credit').text();
             let newQuantity = 0;
+
             if(cartQuantity){
                 newQuantity = parseInt(cartQuantity);
             }
             else{
                 newQuantity = parseInt(checkoutQuantity);
             }
-            //
-            // $('.cart-quantity-'+productId+'-'+variantId).text(newQuantity);
-            // $('.checkout-quantity-'+productId+'-'+variantId).text(newQuantity);
+
             updateTotal();
             $.ajax({
                 url: route('update.quantity'),
@@ -172,7 +207,8 @@ $(document).ready(function () {
                 success: function (response) {
                     $('.cart-quantity-'+productId+'-'+variantId).text(response.quantity);
                     $('.checkout-quantity-'+productId+'-'+variantId).text(response.quantity);
-                    // $('.cart-' + response.cartId).find('.quantity-cart').text(response.quantity)
+
+                    quantity.text(response.quantity);
                     $('.count').text(response.count)
                     $('.subtotal').text(response.subtotal)
                     $('.total').text(response.total)
@@ -185,9 +221,9 @@ $(document).ready(function () {
         $(document).on('click' , '.decrement' , function (){
             let productId = $(this).parents('.d-flex').data('product');
             let variantId = $(this).parents('.d-flex').data('variant');
-            let cartQuantity = $(this).parents('.d-flex').find('.quantity-cart').text();
+            let quantity = $(this).parents('.d-flex').find('.quantity-cart');
+            let cartQuantity = quantity.text();
             let checkoutQuantity = $(this).parents('.d-flex').find('.quantity-checkout').text();
-
 
             if(cartQuantity > 1 || checkoutQuantity > 1){
                 let newQuantity = 0;
@@ -197,8 +233,6 @@ $(document).ready(function () {
                 else{
                     newQuantity = parseInt(checkoutQuantity);
                 }
-                // $('.cart-quantity-'+productId+'-'+variantId).text(newQuantity);
-                // $('.checkout-quantity-'+productId+'-'+variantId).text(newQuantity);
 
                 $.ajax({
                     url: route('update.quantity'),
@@ -211,14 +245,12 @@ $(document).ready(function () {
                     success: function (response) {
                         $('.cart-quantity-'+productId+'-'+variantId).text(response.quantity);
                         $('.checkout-quantity-'+productId+'-'+variantId).text(response.quantity);
-                        // $('.cart-' + response.cartId).find('.quantity-cart').text(response.quantity)
+                        quantity.text(response.quantity)
                         $('.count').text(response.count)
                         $('.subtotal').text(response.subtotal)
                         $('.total').text(response.total)
                         $('.checkout-subtotal').text(response.subtotal)
                         $('.checkout-total').text(response.total)
-                        // count();
-                        // updateTotal();
                     }
                 });
             }
@@ -235,7 +267,7 @@ $(document).ready(function () {
     let refreshInterval;
     $('#messageSend').hide();
 
-    $(document).on('keyup', '#search' ,  function () {
+    $(document).on('keyup', '#searchChat' ,  function () {
         let query = $(this).val();
         $.ajax({
             url: route('search.user'),
@@ -264,11 +296,13 @@ $(document).ready(function () {
                 user_id: id,
             },
             success: function (response) {
-                console.log(response)
                 $('#messageSend').show();
                 $('.message-header').find('.message-header-user').text(response.messageUser)
                 $('.message-header').find('.message-header-user').data('id' , response.messageId)
                 $('.message-header').addClass("border-bottom")
+                $('.search-data').text(null);
+                $('.message-history').show();
+                $('#searchChat').val(null);
             },
         });
     })
@@ -325,7 +359,7 @@ $(document).ready(function () {
                                 <div class="d-flex ${align}">
                                     <div class="message message-${response.message_reply_id}" data-message-id="${response.message_user.id}" data-message-reply-id="${response.message_reply_id}" data-message="${response.message}" data-send-by-admin="${response.send_by_admin}">
                                         <small>${response.created_at}</small>
-                                        <div>
+                                        <div class="d-flex">
                                             <p class="one-message">${response.message}</p>
                                             <div class="dropdown" >
                                                 <button class="dropdown-toggle"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -884,24 +918,23 @@ $(document).ready(function () {
                 console.log(error)
             }
             else{
-                let total = $('.checkout-total').text();
                 let myForm = $('#checkoutForm')[0];
                 let formData = new FormData(myForm);
-                formData.append('total' ,total);
-                formData.append('credit' , credit);
+                // formData.append('total' ,total);
+                // formData.append('credit' , credit);
                 formData.append('paymentMethodId' , setupIntent.payment_method);
-
-                $('.checkout-cart').each(function () {
-                    let productId = $(this).data('product');
-                    let variantId = $(this).data('variant');
-                    let quantity = $(this).find('.quantity-checkout').text();
-                    let price = $(this).find('.cart-price').text();
-
-                    formData.append('product_id[]' , productId);
-                    formData.append('variant_id[]' , variantId);
-                    formData.append('quantity[]' , quantity);
-                    formData.append('price[]' , price);
-                })
+                //
+                // $('.checkout-cart').each(function () {
+                //     let productId = $(this).data('product');
+                //     let variantId = $(this).data('variant');
+                //     let quantity = $(this).find('.quantity-checkout').text();
+                //     let price = $(this).find('.cart-price').text();
+                //
+                //     formData.append('product_id[]' , productId);
+                //     formData.append('variant_id[]' , variantId);
+                //     formData.append('quantity[]' , quantity);
+                //     formData.append('price[]' , price);
+                // })
 
                 $.ajax({
                     url: route('order.store'),

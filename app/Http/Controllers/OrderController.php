@@ -59,6 +59,8 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $input = $request->all();
+        $allCartData = \Cart::getContent();
+        dd($allCartData);
         $charge = auth()->user()->charge($input['total']*100 , $input['paymentMethodId'] , [
             'return_url' => 'http://127.0.0.1:8000',
             'description' => auth()->user()->full_name,

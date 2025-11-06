@@ -5,7 +5,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\ProductCartController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -42,10 +42,11 @@ Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
 
     Route::get('/credit/add' , [UserController::class , 'creditAdd'])->name('credit.add');
     Route::get('/delete-variant' , [ProductController::class , 'deleteVariant'])->name('delete.variant');
-    Route::get('/productCart/view' , [ProductCartController::class , 'productCartView'])->name('product.cart.view');
-    Route::get('/cart' , [ProductCartController::class , 'addToCart'])->name('add.cart');
-    Route::get('/update-quantity' , [ProductCartController::class , 'updateQuantity'])->name('update.quantity');
-    Route::get('/close/cart' , [ProductCartController::class , 'cartItemClose'])->name('delete.cart');
+    Route::get('/menu' , [MenuController::class , 'MenuView'])->name('menu.view');
+    Route::get('/cart' , [MenuController::class , 'addToCart'])->name('add.cart');
+    Route::get('/cart/check' , [MenuController::class , 'CartCheck'])->name('cart.check');
+    Route::get('/update-quantity' , [MenuController::class , 'updateQuantity'])->name('update.quantity');
+    Route::get('/close/cart' , [MenuController::class , 'cartItemClose'])->name('delete.cart');
     Route::get('/checkout/show' , [CheckoutController::class ,  'checkoutShow'])->name('checkout.show');
     Route::get('/checkout/stripe/payment' , [CheckoutController::class ,  'cashierPaymentIntent'])->name('cashier.payment.intent');
     Route::get('/payment/success' , [OrderController::class ,  'paymentSuccess'])->name('payment.success');

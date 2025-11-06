@@ -160,19 +160,33 @@ class ChatController extends Controller
     {
         $input = $request->all();
         $user = User::find($input['user_id']);
-        if(auth()->user()->getRoleNames()->first() == 'admin'){
-            $adminId = auth()->id();
+        $authUser = auth()->user();
+
+        if($authUser->getRoleNames()->first() == 'admin'){
+            $adminId = $authUser->id;
             $userId = $input['user_id'];
         }
         else{
-            $userId = auth()->id();
+            $userId = $authUser->id;
             $adminId = $input['user_id'];
         }
 
+        $existingMessage = Message::where('user_id', $userId)
+            ->where('admin_id', $adminId)->orWhere('user_id', $adminId)->where('admin_id' , $userId)
+            ->first();
+
+        if($existingMessage){
+            return response()->json([
+                'success' => true,
+                'messageUser' => $user->full_name,
+                'messageId' => $existingMessage->id,
+            ]);
+        }
         $message = Message::create([
             'user_id' => $userId,
             'admin_id' => $adminId,
         ]);
+
         return response()->json([
             'success' => true,
             'messageUser' => $user->full_name,
