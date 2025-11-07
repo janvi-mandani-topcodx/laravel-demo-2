@@ -15,7 +15,7 @@
                                 <div id="stripePayment">
                                     <div id="cardElement"></div>
                                 </div>
-                                <button id="cardButton" class="btn btn-success">
+                                <button id="cardButton" class="btn btn-success my-3">
                                     Payment
                                 </button>
                             </form>
@@ -23,7 +23,7 @@
                     </div>
                 </section>
             </div>
-            <div class="col my-4 ">
+            <div class="col my-4 position-relative">
                     <div id="allCartData" style="overflow: auto; height: 85%; overflow-x: hidden;">
                         @foreach(\Cart::getContent() as $cart)
                                 <div class="row my-3 bg-light cart-{{$cart['id']}} cart-product-{{$cart->attributes['product_id']}} checkout-cart" data-product="{{$cart->attributes['product_id']}}" data-variant="{{$cart['id']}}" data-cart="{{$cart['id']}}">
@@ -57,7 +57,7 @@
                                 </div>
                         @endforeach
                     </div>
-                    <div class="position-absolute px-2" style="bottom: 20px; width: 45%;">
+                    <div class="position-absolute px-2 " style="bottom: 220px; width: 98%;">
                         <div class="d-flex justify-content-between my-2" id="subtotal">
                             <label>Subtotal</label>
                             <div class="d-flex">

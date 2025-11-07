@@ -41,10 +41,13 @@
                                     </div>
                                 </div>
                                 <div class="row my-4">
+                                    @if(auth()->user()->hasPermissionTo('create_credit'))
                                     <div>
                                         <button class="btn btn-success add-credit">Credit</button>
                                     </div>
+                                    @endif
                                 </div>
+                                @if(auth()->user()->hasPermissionTo('show_credit_logs'))
                                 <div class="row credit-log-history mt-5 shadow py-3">
                                     <h6>Credit Logs</h6>
                                     <div class="col">
@@ -66,6 +69,7 @@
                                             </div>
                                         </div>
                                         <hr>
+
                                         <div class="credit-show">
                                             <div class="show-new-credit">
 
@@ -91,8 +95,10 @@
                                                 <hr>
                                             @endforeach
                                         </div>
+
                                     </div>
                                 </div>
+                                @endif
                             </div>
                         </div>
                     </div>

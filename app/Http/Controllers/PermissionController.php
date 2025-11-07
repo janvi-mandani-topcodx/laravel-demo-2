@@ -29,7 +29,12 @@ class PermissionController extends Controller
 
     public function create()
     {
-        return view('permissions.create');
+        if(auth()->user()->hasPermissionTo('create_permission')){
+            return view('permissions.create');
+        }
+        else{
+            return view('permissions.index');
+        }
     }
 
 
@@ -48,7 +53,12 @@ class PermissionController extends Controller
     public function edit(string $id)
     {
         $permission = Permission::find($id);
-        return view('permissions.edit', compact('permission'));
+        if(auth()->user()->hasPermissionTo('update_permission')) {
+            return view('permissions.edit', compact('permission'));
+        }
+        else{
+            return view('permissions.index');
+        }
     }
 
 
@@ -64,6 +74,11 @@ class PermissionController extends Controller
     public function destroy(string $id)
     {
         $permission = Permission::find($id);
-        $permission->delete();
+        if(auth()->user()->hasPermissionTo('delete_permission')){
+            $permission->delete();
+        }
+        else{
+            return view('permissions.index');
+        }
     }
 }

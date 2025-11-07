@@ -97,4 +97,18 @@
     </select>
 </div>
 
+
+<div class="form-group mb-4">
+    <label class="form-label fw-bold" for="customFile">Image</label>
+    <input type="file" class="form-control" id="customFile" name="image[]" multiple/>
+    <div id="imagePreview">
+        @if ($user->image_url)
+            @foreach($user->image_url as $image)
+                <img src="{{$image}}" alt="User Image" class="img-thumbnail mt-2" style="max-width: 100px;">
+            @endforeach
+        @endif
+    </div>
+</div>
+
+
 <button type="submit" class="btn btn-primary btn-block mb-4 submit-btn">Update</button>

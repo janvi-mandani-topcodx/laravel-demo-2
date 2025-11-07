@@ -12,17 +12,23 @@ class MenuController extends Controller
     public function MenuView()
     {
         $user = auth()->user();
-        $products = Product::where('status' , 1)->get();
+        $products = Product::status()->get();
         $role = $user->getRoleNames()->first();
         $credit = $user->credit;
-        return view('menu.index' , compact('products' , 'role' , 'credit'));
+        if(auth()->user()->hasPermissionTo('show_menu')) {
+            return view('menu.index' , compact('products' , 'role' , 'credit'));
+        }
+        else{
+            return view('products.index');
+        }
     }
 
     public function addToCart(Request $request){
         $input = $request->all();
         $html = '';
         $credit = auth()->user()->credit;
-        \Cart::add([
+        if(auth()->user()->hasPermissionTo('add_to_cart_product')) {
+            \Cart::add([
                 'id' => $input['variant_id'],
                 'name' => $input['title'],
                 'price' => $input['price'],
@@ -33,51 +39,43 @@ class MenuController extends Controller
                     'product_id' => $input['product_id'],
                 ]
             ]);
-//            \Cart::clearCartConditions();
-//            $condition = new \Darryldecode\Cart\CartCondition([
-//                'name' => 'credit discount',
-//                'type' => 'credit',
-//                'target' => 'subtotal',
-//                'value' => - min(\Cart::getSubTotal() , $credit),
-//            ]);
-//            \Cart::condition($condition);
             $html .= '
-                    <div class="row my-3 bg-light cart cart-'.$input['variant_id'].'" data-product="'.$input['product_id'].'" data-variant="'.$input['variant_id'].'" >
+                    <div class="row my-3 bg-light cart cart-' . $input['variant_id'] . '" data-product="' . $input['product_id'] . '" data-variant="' . $input['variant_id'] . '" >
                         <div class="col">
-                              <img class="card-img-top rounded" src="'.$input['image'].'" alt="Card image cap" style="height: 100px; width: 100px;">
+                              <img class="card-img-top rounded" src="' . $input['image'] . '" alt="Card image cap" style="height: 100px; width: 100px;">
                         </div>
                    <div class="col">
                              <div class="row mb-2">
-                                <span class="col text-muted">'.$input['title'].'</span>
+                                <span class="col text-muted">' . $input['title'] . '</span>
                             </div>
                              <div class="row">
-                                <span class="col">Size : '.$input['size'].'</span>
+                                <span class="col">Size : ' . $input['size'] . '</span>
                             </div>
-                             <div class="d-flex align-items-end justify-content-around pt-2 " data-product="'.$input['product_id'].'" data-variant="'.$input['variant_id'].'">
-                                <span class="fs-4 decrement decrement-cart-'.$input['product_id'].'-'.$input['variant_id'].'">-</span>
-                                <span class="fs-5 quantity-cart cart-quantity-'.$input['product_id'].'-'.$input['variant_id'].'">1</span>
-                                <span class="fs-4 increment increment-cart-'.$input['product_id'].'-'.$input['variant_id'].'">+</span>
+                             <div class="d-flex align-items-end justify-content-around pt-2 " data-product="' . $input['product_id'] . '" data-variant="' . $input['variant_id'] . '">
+                                <span class="fs-4 decrement decrement-cart-' . $input['product_id'] . '-' . $input['variant_id'] . '">-</span>
+                                <span class="fs-5 quantity-cart cart-quantity-' . $input['product_id'] . '-' . $input['variant_id'] . '">1</span>
+                                <span class="fs-4 increment increment-cart-' . $input['product_id'] . '-' . $input['variant_id'] . '">+</span>
                             </div>
                         </div>
                         <div class="col-2">
                             <div class="row">
-                                <button type="button" class="btn-close close-product" aria-label="Close" data-product="'.$input['product_id'].'" data-variant="'.$input['variant_id'].'"></button>
+                                <button type="button" class="btn-close close-product" aria-label="Close" data-product="' . $input['product_id'] . '" data-variant="' . $input['variant_id'] . '"></button>
                             </div>
                               <div class="pt-5 d-flex">
                                <p>$</p>
-                               <span class="cart-price">'.$input['price'].'</span>
+                               <span class="cart-price">' . $input['price'] . '</span>
                             </div>
                         </div>
                     </div>
                 ';
-            \Cart::clearCartConditions();
-            if(\Cart::getTotalQuantity() == 1) {
+            if (\Cart::getTotalQuantity() == 1) {
                 if ($credit != 0) {
+                    \Cart::clearCartConditions();
                     $condition = new \Darryldecode\Cart\CartCondition([
                         'name' => 'credit discount',
                         'type' => 'credit',
                         'target' => 'subtotal',
-                        'value' => - min(\Cart::getSubTotalWithoutConditions() , $credit),
+                        'value' => -min(\Cart::getSubTotalWithoutConditions(), $credit),
                     ]);
                     \Cart::condition($condition);
                 }
@@ -87,20 +85,20 @@ class MenuController extends Controller
                         <label>Subtotal</label>
                         <div class="d-flex">
                             <span >$</span>
-                            <span class="subtotal">' .\Cart::getSubTotalWithoutConditions() . '</span>
+                            <span class="subtotal">' . \Cart::getSubTotalWithoutConditions() . '</span>
                         </div>
                     </div>';
-                    foreach (\Cart::getConditions() as $condition) {
-                        $html .= '
+                foreach (\Cart::getConditions() as $condition) {
+                    $html .= '
                             <div class="d-flex justify-content-between my-2" id="credit">
-                                <label>'.$condition->getName().'</label>
+                                <label>' . $condition->getName() . '</label>
                                 <div class="d-flex">
                                     <span>$</span>
-                                    <span class="credit">'. $condition->getValue().'</span>
+                                    <span class="credit">' . abs($condition->getValue()) . '</span>
                                 </div>
                             </div>';
-                    }
-                    $html .= '<div class="d-flex justify-content-between my-2">
+                }
+                $html .= '<div class="d-flex justify-content-between my-2">
                         <label>Total</label>
                         <div class="d-flex">
                             <span>$</span>
@@ -114,11 +112,15 @@ class MenuController extends Controller
             ';
             }
             return response()->json([
-                'html' => $html ,
+                'html' => $html,
                 'subtotal' => \Cart::getSubTotalWithoutConditions(),
                 'total' => \Cart::getTotal(),
                 'count' => \Cart::getTotalQuantity(),
             ]);
+        }
+        else{
+            return view('menu.index');
+        }
     }
 
 
@@ -147,7 +149,7 @@ class MenuController extends Controller
             'total' => \Cart::getTotal(),
             'subtotal' => \Cart::getSubTotalWithoutConditions(),
             'count' => \Cart::getTotalQuantity(),
-            'credit' => $condition->parsedRawValue,
+            'credit' => abs($condition->getValue()),
         ]);
     }
 

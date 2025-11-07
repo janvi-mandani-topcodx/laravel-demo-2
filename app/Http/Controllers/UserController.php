@@ -18,7 +18,7 @@ class UserController extends Controller
 
     public function __construct(UserRepository $userRepository)
     {
-        $this->UserRepo = $userRepository;
+        $this->userRepo = $userRepository;
     }
 
     public function index(Request $request)
@@ -46,14 +46,19 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('users.create' , compact('roles'));
+        if(auth()->user()->hasPermissionTo('create_user')){
+            return view('users.create' , compact('roles'));
+        }
+        else{
+            return view('users.index');
+        }
     }
 
 
     public function store(CreateUserRequest $request)
     {
         $input = $request->all();
-        $this->UserRepo->store($input);
+        $this->userRepo->store($input);
 
         return redirect()->route('user.index');
     }
@@ -66,7 +71,12 @@ class UserController extends Controller
         $roles = Role::all();
         $credits = CreditLog::where('user_id', $id)->orderByDesc('id')->get();
         $currentCredit = $credits->first();
-        return view('users.edit', compact('user' , 'roles' , 'credits' , 'currentCredit'));
+        if(auth()->user()->hasPermissionTo('update_user')) {
+            return view('users.edit', compact('user', 'roles', 'credits', 'currentCredit'));
+        }
+        else{
+            return view('users.index');
+        }
     }
 
 
@@ -74,7 +84,7 @@ class UserController extends Controller
     {
         $user = User::find($id);
         $input = $request->all();
-        $this->UserRepo->update($input, $user);
+        $this->userRepo->update($input, $user);
         return redirect()->route('user.index');
     }
 
@@ -82,31 +92,44 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::find($id);
-        $user->delete();
+        if(auth()->user()->hasPermissionTo('delete_user')){
+            $user->delete();
+            $deleteImg = $user->getMedia('user');
+            if ($deleteImg) {
+                foreach ($deleteImg as $img) {
+                    $img->delete();
+                }
+            }
+        }
+        else{
+            return view('users.index');
+        }
     }
 
     public function creditAdd(CreditRequest $request)
     {
         $user = auth()->user();
         $input = $request->all();
+        if(auth()->user()->hasPermissionTo('create_credit')) {
 
-        $creditLog = CreditLog::create([
-           'user_id' => $user->id,
-            'amount' => $input['amount'],
-            'previous_balance' => $user->credit ,
-            'new_balance' => $user->credit +  $input['amount'],
-            'reason' => $input['reason'],
-        ]);
+            $creditLog = CreditLog::create([
+                'user_id' => $user->id,
+                'amount' => $input['amount'],
+                'previous_balance' => $user->credit,
+                'new_balance' => $user->credit + $input['amount'],
+                'reason' => $input['reason'],
+            ]);
 
-        $user->credit  = $user->credit +  $input['amount'];
-        $user->save();
+            $user->credit = $user->credit + $input['amount'];
+            $user->save();
 
-        return response()->json([
-            'created_at' => $creditLog->created_at,
-            'credit_amount' => $creditLog->amount,
-            'previous_balance' => $creditLog->previous_balance,
-            'new_balance' => $creditLog->new_balance,
-            'reason' => $creditLog->reason,
-        ]);
+            return response()->json([
+                'created_at' => $creditLog->created_at,
+                'credit_amount' => $creditLog->amount,
+                'previous_balance' => $creditLog->previous_balance,
+                'new_balance' => $creditLog->new_balance,
+                'reason' => $creditLog->reason,
+            ]);
+        }
     }
 }

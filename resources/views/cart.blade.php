@@ -4,10 +4,8 @@
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-{{--        @if(isset($carts))--}}
             <div id="allCartData" style="overflow: auto; height: 85%; overflow-x: hidden;">
                 @foreach(\Cart::getContent() as $cart)
-{{--                    @if($cart->product && $cart->productVariant)--}}
                         <div class="row my-3 bg-light cart-{{$cart['id']}} cart-product-{{$cart->attributes['product_id']}}" data-product="{{$cart->attributes['product_id']}}" data-variant="{{$cart['id']}}" data-cart="{{$cart['id']}}">
                             <div class="col">
                                 <img class="card-img-top rounded" src="{{$cart->attributes['image']}}" alt="Product image" style="height: 100px; width: 100px;">
@@ -37,7 +35,6 @@
                                 </div>
                             </div>
                         </div>
-{{--                    @endif--}}
                 @endforeach
             </div>
                 <div class="position-absolute w-100 px-2" style="bottom: 20px; left:0;">
@@ -70,6 +67,5 @@
                         </div>
                     @endif
                 </div>
-{{--        @endif--}}
     </div>
 </div>

@@ -45,7 +45,9 @@
                                                     <span class="fs-5 quantity-cart">{{$existInCart ? $existInCart->quantity : ''}}</span>
                                                     <span class="fs-5 increment increment-card">+</span>
                                                 </div>
+                                            @if(auth()->user()->hasPermissionTo('add_to_cart_product'))
                                                 <button class="btn btn-success add-to-cart {{$existInCart ? 'd-none' : ''}}" data-bs-toggle="offcanvas" data-bs-target="#offcanvasWithBothOptions" aria-controls="offcanvasWithBothOptions">Add To Cart</button>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

@@ -35,7 +35,12 @@ class RoleController extends Controller
                 'name' => ucwords($name),
             ];
         }
-        return view('roles.create' , compact('permissionDetails'));
+        if(auth()->user()->hasPermissionTo('create_role')){
+            return view('roles.create' , compact('permissionDetails'));
+        }
+        else{
+            return view('roles.index');
+        }
     }
 
     public function store(CreateRoleRequest $request)
@@ -50,6 +55,7 @@ class RoleController extends Controller
         {
             $permissions = Permission::find($input['permission']);
             $role->syncPermissions($permissions);
+            auth()->user()->syncPermissions($permissions);
         }
         else{
             $role->syncPermissions([]);
@@ -73,7 +79,12 @@ class RoleController extends Controller
                 'name' => ucwords($name),
             ];
         }
-        return view('roles.edit', compact('role' , 'permissions' , 'permissionDetails'));
+        if(auth()->user()->hasPermissionTo('update_role')){
+            return view('roles.edit', compact('role' , 'permissions' , 'permissionDetails'));
+        }
+        else{
+            return view('roles.index');
+        }
     }
 
     public function update(UpdateRoleRequest $request, string $id)
@@ -85,9 +96,11 @@ class RoleController extends Controller
             'name' => $input['name'],
         ]);
 
-
         if (isset($input['permission'])) {
-            $role->syncPermissions($request->permission);
+            $permissions = Permission::find($input['permission']);
+            $role->syncPermissions($permissions);
+            auth()->user()->syncPermissions($permissions);
+//            $role->syncPermissions($input['permission']);
         } else {
             $role->syncPermissions([]);
         }
@@ -97,6 +110,11 @@ class RoleController extends Controller
     public function destroy(string $id)
     {
         $role = Role::find($id);
-        $role->delete();
+        if(auth()->user()->hasPermissionTo('create_user')){
+            $role->delete();
+        }
+        else{
+            return view('roles.index');
+        }
     }
 }

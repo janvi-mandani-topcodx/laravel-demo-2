@@ -69,25 +69,22 @@
 @extends('layout')
 
 @section('contents')
-    <div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="d-flex justify-content-center align-items-center w-100" style="min-height: 100vh;">
 
         <div class="container my-5 " style="max-width: 1000px;">
-        <h4 class="mb-4">Edit Order</h4>
+        <h4 class="mb-4 text-center">Edit Order</h4>
 
-        <input type="text" class="form-control mb-3 w-50 search-product-edit" placeholder="Search Product" name="search" id="searchProductEdit">
+        <input type="text" class="form-control mb-3 search-product-edit  mx-auto" placeholder="Search Product" name="search" id="searchProductEdit"  style="width: 65%; ">
 
-        <div id="searchableProduct" class=" p-2 mb-4" style="max-height: 200px; overflow-y: auto; overflow-x: hidden;"></div>
+        <div id="searchableProduct" class=" p-2 mb-4" style="max-height: 200px; overflow-y: auto; overflow-x: hidden; width: 65%; margin: 0 auto;"></div>
 
-        <div class="row">
+        <div class="row justify-content-center">
             <div class="col-md-8">
-                <div id="allOrderData"
-                     data-order="{{ $orderData->id }}"
-                     class="border rounded p-3 mb-4"
-                     style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
+                <div id="allOrderData" data-order="{{ $orderData->id }}" class=" p-3 mb-4" style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
 
                     @foreach($orderData->orderItems as $order)
-                        @if($order->product && $order->variant)
-                            <div class="row align-items-center border-bottom py-3 order-item order-{{ $order->id }} order-product-{{ $order->product->id }}"
+{{--                        @if($order->product && $order->variant)--}}
+                            <div class="row border rounded align-items-center border-bottom py-3 order-item order-{{ $order->id }} order-product-{{ $order->product->id }}"
                                  data-product="{{ $order->product->id }}"
                                  data-variant="{{ $order->variant->id }}"
                                  data-edit="{{ $orderData->id }}">
@@ -108,18 +105,18 @@
                                             <button class="btn btn-sm btn-outline-secondary order-decrement me-2 decrement-order-{{ $order->product->id }}-{{ $order->variant->id }}">-</button>
                                             <span class="fw-bold quantity-order order-quantity-{{ $order->product->id }}-{{ $order->variant->id }}">{{ $order->quantity }}</span>
                                             <button class="btn btn-sm btn-outline-secondary order-increment ms-2 increment-order-{{ $order->product->id }}-{{ $order->variant->id }}">+</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-4 text-end">
-                                        <button type="button"  class="btn-close mb-2 close-product-order"  aria-label="Close" data-product="{{ $order->product->id }}"   data-id="{{ $order->id }}"> </button>
-                                        <div>
-                                            <span>$</span>
-                                            <span class="order-price">{{ $order->variant->price }}</span>
-                                        </div>
                                     </div>
                                 </div>
-                            @endif
+                                <div class="col-4 text-end">
+                                    <button type="button"  class="btn-close mb-2 close-product-order"  aria-label="Close" data-product="{{ $order->product->id }}"   data-id="{{ $order->id }}"> </button>
+                                    <div>
+                                        <span>$</span>
+                                        <span class="order-price">{{ $order->variant->price }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+{{--                            @endif--}}
                         @endforeach
                     </div>
                     <div class="border-top pt-3">

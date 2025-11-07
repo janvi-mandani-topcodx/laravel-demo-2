@@ -17,41 +17,12 @@ $(document).ready(function () {
     });
 
     //cart
-    function count() {
-        // let totalCount = 0;
-        // $('.quantity-cart').each(function () {
-        //     let qty = parseInt($(this).text());
-        //     totalCount += qty;
-        // });
-        // $('.count').text(totalCount);
-    }
-    function updateTotal() {
-        // let totalPrice = 0;
-        //         // $('.quantity-cart').each(function () {
-        //         //     let quantity = parseFloat($(this).text());
-        //         //     console.log(quantity)
-        //         //     let price = $(this).parents('.row').find('.cart-price').text();
-        //         //     console.log(price)
-        //         //     let total = quantity * price;
-        //         //     totalPrice += total;
-        //         // });
-        //         //
-        //         $('.total').text(null)
-        //         $('.doller').text(null)
-        //         // $('.checkout-total').text(null)
-        //         $('.subtotal').text(null)
-                // $('.checkout-subtotal').text(null)
 
-
-    }
-
-    // updateTotal();
-    count();
     $(document).on('click', '.close-product', function () {
         let deleteId = $(this).data('variant');
         let cartId = $(this).data('variant');
         let row = $(this).closest('.cart-' + cartId);
-        updateTotal();
+
         $.ajax({
             url: route('delete.cart'),
             type: "GET",
@@ -66,7 +37,6 @@ $(document).ready(function () {
                     $('.total').text(response.total)
                     $('.checkout-subtotal').text(response.subtotal)
                     $('.checkout-total').text(response.total)
-                    // count();
 
                 }
             },
@@ -114,7 +84,7 @@ $(document).ready(function () {
             product.text(price)
             product.data('variant', variant);
             product.data('variant-title', variantName);
-
+            $('.product-' + productId).find('.increment-decrement-add').attr('data-variant', variant);
 
             $.ajax({
                 url: route('cart.check') ,
@@ -125,11 +95,13 @@ $(document).ready(function () {
                 success: function (response) {
                     if(response.status == 'success'){
                         product.parents('.card').find('.add-to-cart').addClass('d-none');
+                        product.parents('.card').find('.increment-decrement-add').show();
                         product.parents('.card').find('.increment-decrement-add').removeClass('d-none');
                         product.parents('.card').find('.quantity-cart').text(response.quantity)
                     }
                     else if(response.status == 'error'){
                         product.parents('.card').find('.add-to-cart').removeClass('d-none');
+                        product.parents('.card').find('.add-to-cart').show();
                         product.parents('.card').find('.increment-decrement-add').addClass('d-none');
                     }
                 },
@@ -173,7 +145,6 @@ $(document).ready(function () {
                     product.find('.increment-decrement-add').removeClass('d-none');
                     product.find('.increment-decrement-add').show();
                     product.find('.quantity-cart').text(1)
-                    count();
                 },
             });
         });
@@ -183,6 +154,7 @@ $(document).ready(function () {
             let variantId = $(this).parents('.d-flex').data('variant');
             let quantity = $(this).parents('.d-flex').find('.quantity-cart');
             let cartQuantity = quantity.text();
+            let cardQuantity = $('.product-' + productId).find('.increment-decrement-add');
             let checkoutQuantity = $(this).parents('.d-flex').find('.quantity-checkout').text();
             let credit = $('.credit').text();
             let newQuantity = 0;
@@ -194,7 +166,6 @@ $(document).ready(function () {
                 newQuantity = parseInt(checkoutQuantity);
             }
 
-            updateTotal();
             $.ajax({
                 url: route('update.quantity'),
                 type: "GET",
@@ -207,12 +178,13 @@ $(document).ready(function () {
                 success: function (response) {
                     $('.cart-quantity-'+productId+'-'+variantId).text(response.quantity);
                     $('.checkout-quantity-'+productId+'-'+variantId).text(response.quantity);
-
+                    cardQuantity.find('.quantity-cart').text(response.quantity)
                     quantity.text(response.quantity);
                     $('.count').text(response.count)
                     $('.subtotal').text(response.subtotal)
                     $('.total').text(response.total)
                     $('.credit').text(response.credit)
+                    $('.checkout-credit').text(response.credit)
                     $('.checkout-subtotal').text(response.subtotal)
                     $('.checkout-total').text(response.total)
                 }
@@ -223,6 +195,8 @@ $(document).ready(function () {
             let variantId = $(this).parents('.d-flex').data('variant');
             let quantity = $(this).parents('.d-flex').find('.quantity-cart');
             let cartQuantity = quantity.text();
+            let cardQuantity = $('.product-' + productId).find('.increment-decrement-add');
+            console.log($('.product-' + productId).find('.increment-decrement-add'))
             let checkoutQuantity = $(this).parents('.d-flex').find('.quantity-checkout').text();
 
             if(cartQuantity > 1 || checkoutQuantity > 1){
@@ -246,9 +220,12 @@ $(document).ready(function () {
                         $('.cart-quantity-'+productId+'-'+variantId).text(response.quantity);
                         $('.checkout-quantity-'+productId+'-'+variantId).text(response.quantity);
                         quantity.text(response.quantity)
+                        cardQuantity.find('.quantity-cart').text(response.quantity)
                         $('.count').text(response.count)
                         $('.subtotal').text(response.subtotal)
                         $('.total').text(response.total)
+                        $('.credit').text(response.credit)
+                        $('.checkout-credit').text(response.credit)
                         $('.checkout-subtotal').text(response.subtotal)
                         $('.checkout-total').text(response.total)
                     }
@@ -880,74 +857,95 @@ $(document).ready(function () {
     $('#cardButton').hide();
 
     $(document).on('click', '#checkoutButton', function () {
-        $('#checkoutField').hide();
-        $('#cardButton').show();
 
-        let total = $('.checkout-total').text();
-        let credit = $('.checkout-credit').text();
-        const stripe = Stripe(window.stripePublicKey);
-        let elements = null;
+        let myForm = $('#checkoutForm')[0];
+        let formData = new FormData(myForm);
+
         $.ajax({
-            url: route('cashier.payment.intent'),
-            method: "GET",
-            data: {
-                total : total,
-            },
-            success: function (response) {
-                console.log(response);
-                elements = stripe.elements({ clientSecret: response.client_secret});
-                const paymentElement = elements.create('payment');
-                paymentElement.mount('#cardElement');
-            },
-        });
+            url: route('checkout.form.data'),
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function () {
+                $('#checkoutField').hide();
+                $('#cardButton').show();
 
-        const paymentButton = document.getElementById('cardButton');
-        paymentButton.addEventListener('click',async (e) => {
-            e.preventDefault();
-
-            const {setupIntent, error} = await stripe.confirmSetup({
-                elements,
-                confirmParams: {
-                    return_url: route('payment.success'),
-                },
-                redirect: "if_required",
-            });
-
-            console.log(setupIntent);
-            if(error){
-                console.log(error)
-            }
-            else{
-                let myForm = $('#checkoutForm')[0];
-                let formData = new FormData(myForm);
-                // formData.append('total' ,total);
-                // formData.append('credit' , credit);
-                formData.append('paymentMethodId' , setupIntent.payment_method);
-                //
-                // $('.checkout-cart').each(function () {
-                //     let productId = $(this).data('product');
-                //     let variantId = $(this).data('variant');
-                //     let quantity = $(this).find('.quantity-checkout').text();
-                //     let price = $(this).find('.cart-price').text();
-                //
-                //     formData.append('product_id[]' , productId);
-                //     formData.append('variant_id[]' , variantId);
-                //     formData.append('quantity[]' , quantity);
-                //     formData.append('price[]' , price);
-                // })
-
+                let total = $('.checkout-total').text();
+                const stripe = Stripe(window.stripePublicKey);
+                let elements = null;
                 $.ajax({
-                    url: route('order.store'),
-                    type: "POST",
-                    data: formData,
-                    contentType: false,
-                    processData: false,
+                    url: route('cashier.payment.intent'),
+                    method: "GET",
+                    data: {
+                        total : total,
+                    },
                     success: function (response) {
-                        window.location.href = route('order.index');
+                        console.log(response);
+                        elements = stripe.elements({ clientSecret: response.client_secret});
+                        const paymentElement = elements.create('payment');
+                        paymentElement.mount('#cardElement');
                     },
                 });
-            }
+
+                const paymentButton = document.getElementById('cardButton');
+                paymentButton.addEventListener('click',async (e) => {
+                    e.preventDefault();
+
+                    const {setupIntent, error} = await stripe.confirmSetup({
+                        elements,
+                        confirmParams: {
+                            return_url: route('payment.success'),
+                        },
+                        redirect: "if_required",
+                    });
+
+                    console.log(setupIntent);
+                    if(error){
+                        console.log(error)
+                    }
+                    else{
+
+                        formData.append('paymentMethodId' , setupIntent.payment_method);
+                        $.ajax({
+                            url: route('checkout.order.create'),
+                            type: "POST",
+                            data: formData,
+                            contentType: false,
+                            processData: false,
+                            success: function (response) {
+                                window.location.href = route('order.index');
+                            },
+                        });
+
+                    }
+                });
+            },
+            error: function (response) {
+                let errors = response.responseJSON.errors;
+                if (errors.first_name) {
+                    $('.first-name-error').text(errors.first_name[0]);
+                }
+                if (errors.last_name) {
+                    $('.last-name-error').text(errors.last_name[0]);
+                }
+                if (errors.address) {
+                    $('.address-error').text(errors.address[0]);
+                }
+                if (errors.state) {
+                    $('.state-error').text(errors.state[0]);
+                }
+                if (errors.country) {
+                    $('.country-error').text(errors.country[0]);
+                }
+                if (errors.delivery) {
+                    $('.delivery-error').text(errors.delivery[0]);
+                }
+
+            },
         });
+
+
     });
 
     //order in index
@@ -993,6 +991,21 @@ $(document).ready(function () {
     });
 
 
+    $(document).on('click', '#deleteOrder', function () {
+        let deleteId = $(this).data('id');
+
+        $.ajax({
+            url: route('order.destroy' , deleteId),
+            type: "DELETE",
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function () {
+                tableOrder.ajax.reload(null, false);
+            },
+        });
+    });
+
     //order in edit
 
 
@@ -1005,14 +1018,14 @@ $(document).ready(function () {
             let total = quantity * price;
             totalPrice += total;
         });
-
+        $('.order-subtotal').text(totalPrice);
         let credit = $('.order-credit').text();
         if(credit){
             totalPrice -= credit
         }
-
+        console.log(totalPrice)
         $('.order-total').text(totalPrice);
-        $('.order-subtotal').text(totalPrice);
+
     }
     updateTotalOrder()
 
@@ -1031,8 +1044,7 @@ $(document).ready(function () {
         let variantId = $(this).parents('.d-flex').data('variant');
         let orderQuantity = $(this).parents('.d-flex').find('.order-quantity-'+productId+'-'+variantId).text();
 
-        let newQuantity = 0;
-
+        let newQuantity = 1;
         if(orderQuantity > 1){
             newQuantity = parseInt(orderQuantity) - 1;
         }
@@ -1069,48 +1081,72 @@ $(document).ready(function () {
         let productTitle = $(this).find('.product-title-search').text();
         let variantSize = $(this).find('.variant-size-search').text();
         let price = $(this).find('.price-search').text();
-        let html = '';
-        html = `
-            <div class="row my-3 bg-light order-item order order-product-${productId}"
-             data-product="${productId}" data-variant="${variantId}">
-            <div class="col">
-                <img class="card-img-top rounded" src="${imagUrl}" alt="Product image"
-                     style="height: 100px; width: 100px;"/>
-            </div>
-            <div class="col">
-                <div class="row mb-2">
-                    <span class="col text-muted">${productTitle}</span>
-                </div>
-                <div class="row">
-                    <span class="col">Size : ${variantSize}</span>
-                </div>
-                <div class="d-flex align-items-end justify-content-around pt-2" data-product="${productId}" data-variant="${variantId}">
-                    <span
-                        class="fs-4 order-decrement decrement-order-${productId}-${variantId}">-</span>
-                    <span
-                        class="fs-5 quantity-order  order-quantity-${productId}-${variantId}">1</span>
-                    <span
-                        class="fs-4 order-increment increment-order-${productId}-${variantId}">+</span>
-                </div>
-            </div>
-            <div class="col-2">
-                <div class="row">
-                    <button type="button" class="btn-close close-product-order "
-                            aria-label="Close" data-product="${productId}" ></button>
-                </div>
-                <div class="pt-5 d-flex">
-                    <p>$</p>
-                    <p class="order-price">${price}</p>
-                </div>
-            </div>
-        </div>
-        `;
+        let orderId  = $('#allOrderData').data('order');
+        console.log(orderId)
+        $.ajax({
+            url: route('select.single.product'),
+            method: "GET",
+            data: {
+                order_id : orderId,
+                product_id: productId,
+                variant_id: variantId,
+                image_url : imagUrl,
+                product_title : productTitle,
+                variant_size : variantSize,
+                price: price,
+            },
+            success: function (response) {
+                if(response.status == 'exist')
+                {
+                    console.log('.order-quantity-'+productId+'-'+variantId)
 
-        $('#allOrderData').append(html);
-        $('#searchableProduct').text('');
-        $('.search-product-edit').val('')
-        $('#searchableProduct').css("height", '0');
-        updateTotalOrder()
+                    $('.order-quantity-'+productId+'-'+variantId).text(response.quantity)
+                }
+                else if(response.status == 'not_exist')
+                {
+                    let html = '';
+                    html = `
+                    <div class="row align-items-center border rounded py-3 order-item order order-product-${productId}"
+                         data-product="${productId}" data-variant="${variantId}">
+                                <div class="col-2">
+                                    <img src="${imagUrl}"
+                                         alt="Product"
+                                         class="img-fluid rounded"
+                                         style="height: 80px; width: 80px; object-fit: cover;">
+                                </div>
+
+                                <div class="col-6">
+                                    <div><strong>${productTitle}</strong></div>
+                                    <div>Size: ${variantSize}</div>
+                                    <div class="d-flex align-items-center mt-2"  data-product="${productId}" data-variant="${variantId}" >
+                                            <button class="btn btn-sm btn-outline-secondary order-decrement me-2 decrement-order-${productId}-${variantId}"">-</button>
+                                            <span class="fw-bold quantity-order  order-quantity-${productId}-${variantId}"">1</span>
+                                            <button class="btn btn-sm btn-outline-secondary order-increment ms-2 increment-order-decrement-order-${productId}-${variantId}">+</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-4 text-end">
+                                        <button type="button"  class="btn-close mb-2 close-product-order"  aria-label="Close" data-product="${productId}" > </button>
+                                        <div>
+                                            <span>$</span>
+                                            <span class="order-price">${price}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            `;
+
+                    $('#allOrderData').append(html);
+                    $('#searchableProduct').text('');
+                    $('.search-product-edit').val('')
+                    $('#searchableProduct').css("height", '0');
+                }
+                updateTotalOrder()
+            }
+        });
+
+
     });
 
     $(document).on('click' , '.edit-order' , function (){
@@ -1148,7 +1184,7 @@ $(document).ready(function () {
                 _token: $('meta[name="csrf-token"]').attr('content'),
             },
             success: function (response) {
-
+                window.location.href=route('order.index')
             },
         });
 
@@ -1168,6 +1204,28 @@ $(document).ready(function () {
             processData: false,
             contentType: false,
             success: function (response) {
+
+            },
+            error: function (response) {
+                let errors = response.responseJSON.errors;
+                if (errors.first_name) {
+                    $('.first-name-error').text(errors.first_name[0]);
+                }
+                if (errors.last_name) {
+                    $('.last-name-error').text(errors.last_name[0]);
+                }
+                if (errors.address) {
+                    $('.address-error').text(errors.address[0]);
+                }
+                if (errors.state) {
+                    $('.state-error').text(errors.state[0]);
+                }
+                if (errors.country) {
+                    $('.country-error').text(errors.country[0]);
+                }
+                if (errors.delivery) {
+                    $('.delivery-error').text(errors.delivery[0]);
+                }
 
             },
         });

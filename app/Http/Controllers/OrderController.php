@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EditOrderRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Repositories\OrderRepository;
@@ -14,11 +15,11 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    private $Order;
+    private $orderRepo;
 
     public function __construct(OrderRepository $orderRepository)
     {
-        $this->Order = $orderRepository;
+        $this->orderRepo = $orderRepository;
     }
 
     public function paymentSuccess()
@@ -31,9 +32,7 @@ class OrderController extends Controller
         if ($request->ajax()) {
             return DataTables::of(Order::get())
                 ->editColumn('user name' ,  function ($order) {
-                   $name = json_decode($order->shipping_details);
-                   $fullName = $name->first_name . ' ' . $name->last_name;
-                   return $fullName;
+                   return auth()->user()->full_name;
                 })
                 ->editColumn('refunded Amount' ,  function ($order) {
                     $orderPayments = $order->orderPayments->first();
@@ -45,31 +44,7 @@ class OrderController extends Controller
         return view('order.index' , compact('orders'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $input = $request->all();
-        $allCartData = \Cart::getContent();
-        dd($allCartData);
-        $charge = auth()->user()->charge($input['total']*100 , $input['paymentMethodId'] , [
-            'return_url' => 'http://127.0.0.1:8000',
-            'description' => auth()->user()->full_name,
-        ]);
-        if($charge->status == 'succeeded'){
-            $this->Order->store($input , $charge);
-            return redirect()->route('order.index');
-        }
-    }
 
     public function show(string $id)
     {
@@ -78,18 +53,17 @@ class OrderController extends Controller
         return view('order.show' , compact('order' , 'orderDetails'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         $orderData = Order::with(['orderItems' , 'orderPayments'])->find($id);
-        return view('order.edit' , compact('orderData'));
+        if(auth()->user()->hasPermissionTo('update_order')) {
+            return view('order.edit' , compact('orderData'));
+        }
+        else{
+            return view('order.index');
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $input = $request->all();
@@ -149,16 +123,19 @@ class OrderController extends Controller
                 }
             }
         }
-        $this->Order->update($input  , $order );
+        $this->orderRepo->update($input  , $order );
 
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(string $id)
     {
-        //
+        if(auth()->user()->hasPermissionTo('delete_order')) {
+            Order::find($id)->delete();
+        }
+        else{
+            return view('order.index');
+        }
     }
 
     public function searchProductItems(Request $request)
@@ -176,7 +153,7 @@ class OrderController extends Controller
             $html = '';
             foreach ($products as $product) {
                 foreach ($product->productVariants as $productVariant) {
-                    $html .= '<div class="row bg-light w-50 product-'.$product->id.'-'.$productVariant->id.' rounded my-2 border single-product" id="singleProduct" data-id="'. $product->id .'" data-variant="'.$productVariant->id.'" data-url="'.$product->image_url[0].'">
+                    $html .= '<div class="row bg-light border rounded w-100 product-'.$product->id.'-'.$productVariant->id.'  my-2  single-product" id="singleProduct" data-id="'. $product->id .'" data-variant="'.$productVariant->id.'" data-url="'.$product->image_url[0].'">
                                     <div class="col">
                                         <div class="row">
                                             <div class="col">
@@ -184,9 +161,9 @@ class OrderController extends Controller
                                             </div>
                                             <div class="col">
                                                  <p class="product-title-search">'. $product->title.'</p>
-                                                 <p class="variant-size-search">Size : '. $productVariant->title.'</p>
+                                                 <p class="variant-size-search"> '. $productVariant->title.'</p>
                                             </div>
-                                            <div class="col">
+                                            <div class="col d-flex">
                                                 <p>$</p>
                                                 <p class="price-search">'. $productVariant->price .'</p>
                                             </div>
@@ -200,7 +177,7 @@ class OrderController extends Controller
         }
     }
 
-    public function orderDetailsEdit(Request $request)
+    public function orderDetailsEdit(EditOrderRequest $request)
     {
         $input = $request->all();
         $order = Order::find($input['edit_id']);
@@ -212,5 +189,32 @@ class OrderController extends Controller
             'delivery' => $input['delivery'],
             'total' => $order->total,
         ]);
+    }
+
+    public function selectSingleProduct(Request $request)
+    {
+        $input = $request->all();
+        $order = Order::find($input['order_id']);
+        $orderItems = $order->orderItems;
+        $existingOrderItem = null;
+        foreach ($orderItems as $item) {
+            if ($item->product_id == $input['product_id'] && $item->variant_id == $input['variant_id']) {
+                $existingOrderItem = $item;
+                break;
+            }
+        }
+
+        if($existingOrderItem){
+            return response()->json([
+                'status' => 'exist',
+                'quantity' => $existingOrderItem->quantity + 1,
+            ]);
+        }
+        else{
+            return response()->json([
+               'status' => 'not_exist',
+            ]);
+        }
+
     }
 }

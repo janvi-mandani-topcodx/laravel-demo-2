@@ -92,4 +92,12 @@
 </div>
 
 
+<div class="form-group mb-4">
+    <label class="form-label fw-bold" for="customFile">Image</label>
+    <input type="file" class="form-control" id="customFile" name="image[]" multiple/>
+    <div id="imagePreview"></div>
+</div>
+
+
+
 <button type="submit" class="btn btn-primary btn-block mb-4 submit-btn">Submit</button>

@@ -40,7 +40,12 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('products.create');
+        if(auth()->user()->hasPermissionTo('create_product')) {
+            return view('products.create');
+        }
+        else{
+            return  view('products.index');
+        }
     }
 
     public function store(CreateProductRequest $request)
@@ -54,7 +59,12 @@ class ProductController extends Controller
     public function edit(string $id)
     {
         $product = Product::find($id);
-        return view('products.edit', compact('product'));
+        if(auth()->user()->hasPermissionTo('update_product')) {
+            return view('products.edit', compact('product'));
+        }
+        else{
+            return  view('products.index');
+        }
     }
 
 
@@ -70,14 +80,19 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $product = Product::find($id);
-        $product->delete();
-        $deleteImg = $product->getMedia('product');
-        $product->productVariants()->delete();
-        if($deleteImg)
-        {
-            foreach ($deleteImg as $img) {
-                $img->delete();
+        if(auth()->user()->hasPermissionTo('create_permission')) {
+
+            $product->delete();
+            $deleteImg = $product->getMedia('product');
+            $product->productVariants()->delete();
+            if ($deleteImg) {
+                foreach ($deleteImg as $img) {
+                    $img->delete();
+                }
             }
+        }
+        else{
+            return  view('products.index');
         }
     }
 

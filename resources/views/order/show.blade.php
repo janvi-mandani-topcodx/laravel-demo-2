@@ -54,7 +54,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Order Details</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -68,43 +68,41 @@
                                 <div class="col">
                                     <div  class="form-group">
                                         <label class="form-label fw-bold " for="firstName">First Name</label>
-                                        <input type="text" id="firstName" class="form-control"  value="{{$orderDetails->first_name}}"  name="first_name" placeholder="Enter your first name"/>
-                                        <span style="color: darkred" class="first_name-error"></span>
+                                        <input type="text" id="firstName" class="form-control"  value="{{$orderDetails->first_name}}"  name="first_name" placeholder="Enter Your First Name"/>
+                                        <span style="color: darkred" class="first-name-error"></span>
                                     </div>
                                 </div>
                             </div>
 
                             <div  class="form-group mb-4">
                                 <label class="form-label fw-bold" for="lastName">Last Name</label>
-                                <input type="text" id="lastName" class="form-control"  value="{{$orderDetails->last_name}}"  name="last_name" placeholder="Enter your last name"/>
+                                <input type="text" id="lastName" class="form-control"  value="{{$orderDetails->last_name}}"  name="last_name" placeholder="Enter Your Last Name"/>
                                 <span style="color: darkred" class="last-name-error"></span>
                             </div>
 
                             <div class="form-group mb-4">
                                 <label class="form-label fw-bold" for="address">Address</label>
-                                <input type="text" id="address" class="form-control"  value="{{$orderDetails->address}}"  name="address" placeholder="Enter your address"/>
+                                <input type="text" id="address" class="form-control"  value="{{$orderDetails->address}}"  name="address" placeholder="Enter Your Address"/>
                                 <span style="color: darkred" class="address-error"></span>
                             </div>
 
                             <div class="form-group mb-4">
                                 <label class="form-label fw-bold" for="state">State</label>
-                                <input type="text" id="state" class="form-control"  value="{{$orderDetails->state}}"  name="state" placeholder="Enter your state"/>
+                                <input type="text" id="state" class="form-control"  value="{{$orderDetails->state}}"  name="state" placeholder="Enter Your State"/>
                                 <span style="color: darkred" class="state-error"></span>
                             </div>
 
                             <div class="form-group mb-4">
                                 <label class="form-label fw-bold" for="country">Country</label>
-                                <input type="text" id="country" class="form-control"  value="{{$orderDetails->country}}"  name="country" placeholder="Enter your country"/>
+                                <input type="text" id="country" class="form-control"  value="{{$orderDetails->country}}"  name="country" placeholder="Enter Your Country"/>
                                 <span style="color: darkred" class="country-error"></span>
                             </div>
 
                             <div class="form-group mb-4">
                                 <label class="form-label fw-bold" for="delivery">Delivery</label>
-                                <textarea id="delivery" class="form-control"  name="delivery" placeholder="Enter delivery">{{$order->delivery}}</textarea>
+                                <textarea id="delivery" class="form-control"  name="delivery" placeholder="Enter Delivery">{{$order->delivery}}</textarea>
                                 <span style="color: darkred" class="delivery-error"></span>
                             </div>
-
-
 
                         </div>
                     </form>

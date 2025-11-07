@@ -19,7 +19,9 @@
                                 <th>User Name</th>
                                 <th>Amount</th>
                                 <th>Refunded Amount</th>
-                                <th>Actions</th>
+                                @if(auth()->user()->hasPermissionTo('update_order') || auth()->user()->hasPermissionTo('delete_order'))
+                                    <th>Actions</th>
+                                @endif
                             </tr>
                             </thead>
                             <tbody>

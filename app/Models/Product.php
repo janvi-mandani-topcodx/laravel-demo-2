@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -36,5 +38,11 @@ class Product extends Model implements HasMedia
             return $img;
         }
         return null;
+    }
+
+    #[Scope]
+    protected function status(Builder $query): void
+    {
+        $query->where('status', 1);
     }
 }

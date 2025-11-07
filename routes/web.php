@@ -32,7 +32,7 @@ Route::get('/email-verify', [LoginController::class, 'emailVerify'])->name('emai
 Route::view('/reset-password/{user}' , 'auth.reset-password')->name('reset.password.view');
 Route::post('/reset-password/{user}' , [LoginController::class , 'resetPassword'])->name('reset.password');
 
-Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
+Route::middleware(['emailVerification' , 'authLogin'])->group(function (){
     Route::resource('user' , UserController::class);
     Route::resource('role' , RoleController::class);
     Route::resource('chat' , ChatController::class);
@@ -49,9 +49,12 @@ Route::middleware(['emailVerification'] , 'authLogin')->group(function (){
     Route::get('/close/cart' , [MenuController::class , 'cartItemClose'])->name('delete.cart');
     Route::get('/checkout/show' , [CheckoutController::class ,  'checkoutShow'])->name('checkout.show');
     Route::get('/checkout/stripe/payment' , [CheckoutController::class ,  'cashierPaymentIntent'])->name('cashier.payment.intent');
+    Route::post('/checkout/form/data' , [CheckoutController::class ,  'checkoutFormData'])->name('checkout.form.data');
+    Route::post('/checkout/order/create' , [CheckoutController::class ,  'orderCreate'])->name('checkout.order.create');
     Route::get('/payment/success' , [OrderController::class ,  'paymentSuccess'])->name('payment.success');
     Route::get('/search/product/items' , [OrderController::class ,  'searchProductItems'])->name('search.order.items');
     Route::put('order/edit/details/{id}', [OrderController::class, 'orderDetailsEdit'])->name('order.update.details');
+    Route::get('select/single/product', [OrderController::class, 'selectSingleProduct'])->name('select.single.product');
     Route::get('/message-store' , [ChatController::class , 'messageStore'])->name('message.store');
     Route::get('/message-get' , [ChatController::class , 'allMessageGet'])->name('chat.get.messages');
     Route::get('/search-user' , [ChatController::class , 'SearchUser'])->name('search.user');

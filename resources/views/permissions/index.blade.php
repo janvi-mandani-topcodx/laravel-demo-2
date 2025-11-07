@@ -12,7 +12,9 @@
                         </div>
                         <div class="d-flex justify-content-end my-3">
                             <div class="col-xs-8 text-right w-66 p-0">
-                                <a href="{{route('permission.create')}}" class="btn btn-sm btn-primary" id="createPermission">Create New</a>
+                                @if(auth()->user()->hasPermissionTo('create_permission'))
+                                    <a href="{{route('permission.create')}}" class="btn btn-sm btn-primary" id="createPermission">Create New</a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -22,7 +24,9 @@
                             <tr>
                                 <th>Id</th>
                                 <th>Name</th>
-                                <th>Actions</th>
+                                @if(auth()->user()->hasPermissionTo('update_permission') || auth()->user()->hasPermissionTo('delete_permission'))
+                                    <th>Actions</th>
+                                @endif
                             </tr>
                             </thead>
                             <tbody>
