@@ -56,6 +56,7 @@ Route::middleware(['emailVerification' , 'authLogin'])->group(function (){
     Route::put('order/edit/details/{id}', [OrderController::class, 'orderDetailsEdit'])->name('order.update.details');
     Route::get('select/single/product', [OrderController::class, 'selectSingleProduct'])->name('select.single.product');
     Route::get('/message-store' , [ChatController::class , 'messageStore'])->name('message.store');
+    Route::post('/send-message/admin' , [ChatController::class , 'sendMessageAdminAgent'])->name('send.message.admin');
     Route::get('/message-get' , [ChatController::class , 'allMessageGet'])->name('chat.get.messages');
     Route::get('/search-user' , [ChatController::class , 'SearchUser'])->name('search.user');
     Route::get('/logout' , [LoginController::class , 'logout'])->name('logout');

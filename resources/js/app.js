@@ -312,9 +312,9 @@ $(document).ready(function () {
     })
 
     $(document).on('click', '.send-message' , function (){
-        let messageId = $('.message-header').find('.message-header-user').data('id');
-        console.log( $('.message-header').find('.message-header-user'))
-        let message = $(this).parents('#messageSend').find('.message-text').val();
+        // let messageId = $('.message-header').find('.message-header-user').data('id');
+        // console.log( $('.message-header').find('.message-header-user'))
+        // let message = $(this).parents('#messageSend').find('.message-text').val();
 
         $.ajax({
             url: route('chat.store'),
@@ -407,6 +407,36 @@ $(document).ready(function () {
             }
         });
     });
+
+
+    $(document).on('click' , '.send-message-user-side' , function (e){
+        e.preventDefault()
+        let myForm = $('#chatForm')[0];
+        let formData = new FormData(myForm);
+        $.ajax({
+            url: route('send.message.admin'),
+            method: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+            let html = `
+                    <div>
+                        <div class="d-flex gap-1 align-items-end">
+                            <div class="full-name">you</div>
+                                <div class="time text-secondary pt-1" style="font-size: 13px">${response.created_at}</div>
+                            <div class="messages w-50 ms-4 py-2 rounded" style="background-color: darkgray ">
+                               <div class="ps-2">${response.message}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            $('.message-chat').append(html);
+
+            }
+        })
+    })
 
 
     //permission in index

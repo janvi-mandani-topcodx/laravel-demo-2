@@ -22,10 +22,10 @@ class ChatController extends Controller
 //        }
 //        else{
 //            $messages = Message::where('user_id', auth()->id())->get();
-            $messages = Chat::get();
+            $message = Chat::first();
 //        }
 
-        return view('chats.dashboard' , compact('messages'));
+        return view('chats.dashboard' , compact('message'));
 
     }
 
@@ -100,12 +100,12 @@ class ChatController extends Controller
 //        else{
 //            $sendByAdmin = 0;
 //        }
+        $media = $input['image'];
         $chatMessage = ChatMessage::create([
-            'chat_id' => $input['message_id'],
+            'chat_id' => $input['chat_id'],
             'user_type' => $user,
             'message' => $input['message'] ?? null,
-            'attachment_name' => $input['attachment'] ?? null,
-            'attachment_url' => $input['attachment_url'] ?? null,
+
         ]);
 
 //        $messageReply = MessageReply::create([
@@ -115,6 +115,15 @@ class ChatController extends Controller
 //        ]);
 //        $chatUser = Message::find($input['message_id']);
         $chatUser = Chat::find($input['message_id']);
+        if ($media) {
+            foreach ($media as $file) {
+                $media = $chatMessage->addMedia($file)->toMediaCollection('chat');
+                $chatMessage->update([
+                    'attachment_name' => $media->file_name,
+                    'attachment_url' => $media->getUrl(),
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -160,7 +169,6 @@ class ChatController extends Controller
                 'messageId' => $messageReply->id,
             ]);
         }
-
     }
 
     /**
@@ -217,29 +225,40 @@ class ChatController extends Controller
         $input = $request->all();
         $message = Chat::find($input['message_id']);
         $reply = '';
-        if(auth()->user()->hasPermissionTo('view_chat')) {
+        $user = auth()->user();
+        if($user->hasPermissionTo('view_chat')) {
 
             foreach ($message->chatMessages as $messageReply) {
+//                $align = $messageReply->user_type == 'user' ? 'justify-content-end' : 'justify-content-start';
                 $align = $messageReply->user_type == 'user' ? 'justify-content-end' : 'justify-content-start';
-//                $align = $messageReply->send_by_admin == 1 ? 'justify-content-end' : 'justify-content-start';
-//                if ($messageReply->send_by_admin == 1 && auth()->user()->id == $message->admin_id ||
-//                    $messageReply->send_by_admin == 0 && auth()->user()->id == $message->user_id) {
-                    $display = '';
-//                } else {
-//                    $display = 'd-none';
-//                }
+                $display = $messageReply->user_type == 'user' ? 'd-none' : '';
 
-                $update = auth()->user()->hasPermissionTo('update_chat') ? '' : 'd-none';
-                $delete = auth()->user()->hasPermissionTo('delete_chat') ? '' : 'd-none';
-                $updateOrDelete = auth()->user()->hasPermissionTo('delete_chat') ||  auth()->user()->hasPermissionTo('update_chat') ? '' : 'd-none';
+                 $image = $display ? '' : 'd-none';
+                $sender = User::role($messageReply->user_type)->first();
+                $name = $messageReply->user_type == 'user' ? $sender->full_name : 'you';
+                $bgColor = $messageReply->user_type == 'user' ? 'lightgray' : 'beige';
+
+                $update = $user->hasPermissionTo('update_chat') ? '' : 'd-none';
+                $delete = $user->hasPermissionTo('delete_chat') ? '' : 'd-none';
+                $updateOrDelete = $user->hasPermissionTo('delete_chat') ||  $user->hasPermissionTo('update_chat') ? '' : 'd-none';
 
 
                 $reply .= '
                     <div class="d-flex ' . $align . '">
                         <div class="message  message-' . $messageReply->id . '" data-message-id="' . $message->id . '" data-message-reply-id="' . $messageReply->id . '" data-message="' . $messageReply->message . '" data-send-by-admin="' . $messageReply->send_by_admin . '">
-                            <small>' . $messageReply->created_at->diffForHumans() . '</small>
-                           <div class="d-flex">
-                               <p class="one-message">' . $messageReply->message . '</p>
+
+                            <div class="d-flex gap-1">
+                                <div class="image rounded-circle '.$image.'">
+                                    <img src="'.$sender->image_url[0].'" class="rounded-circle" height="30" width="30">
+                                </div>
+                                <div class="full-name-show">
+                                    <span style="font-size: 18px">'. $name .'</span>
+                                </div>
+
+                                <small class="text-secondary mt-1" >' . $messageReply->created_at->diffForHumans() . '</small>
+                            </div>
+                           <div class="d-flex w-50 ms-4 py-2 my-1 rounded" style="background-color: '.$bgColor.'; height : 38px;">
+                               <p class="one-message ps-1">' . $messageReply->message . '</p>
                                <div class="dropdown  ' . $display . '"" >
                                   <button class="dropdown-toggle '.$updateOrDelete.'"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                        <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
@@ -270,5 +289,33 @@ class ChatController extends Controller
         else{
             return view('chats.dashboard');
         }
+    }
+
+    public function sendMessageAdminAgent(Request $request)
+    {
+        $input = $request->all();
+        $media = $input['image'];
+        $chatMessage = ChatMessage::create([
+            'chat_id' => $input['chat_id'],
+            'user_type' => 'user',
+            'message' => $input['message'] ?? null,
+        ]);
+        if ($media) {
+            foreach ($media as $file) {
+                $media = $chatMessage->addMedia($file)->toMediaCollection('chat');
+
+                $chatMessage->update([
+                    'attachment_name' => $media->file_name,
+                    'attachment_url' => $media->getUrl(),
+                ]);
+            }
+        }
+
+//        return response()->json([
+//            'status' => true,
+//            'message' => $chatMessage->message,
+//            'created_at' => $chatMessage->created_at,
+//            'attachment' => $chatMessage->attachment_url,
+//        ]);
     }
 }
