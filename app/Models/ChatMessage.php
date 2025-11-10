@@ -23,7 +23,7 @@ class ChatMessage extends Model implements HasMedia
 
     public function getImageUrlAttribute()
     {
-        $img = [];
+            $img = [];
         $chatImage = $this->getMedia('chat');
         if($chatImage){
             foreach ($chatImage as $image) {

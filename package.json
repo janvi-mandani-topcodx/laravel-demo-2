@@ -17,6 +17,7 @@
     "dependencies": {
         "bootstrap": "^5.3.8",
         "datatables.net-dt": "^2.3.4",
-        "jsrender": "^1.0.16"
+        "jsrender": "^1.0.16",
+        "sweetalert2": "^11.26.3"
     }
 }

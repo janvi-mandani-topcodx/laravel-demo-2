@@ -7,6 +7,9 @@ window.DataTable  =  DataTable;
 
 import 'jsrender';
 
+import Swal from 'sweetalert2'
+window.Swal  = Swal;
+
 
 $(document).ready(function () {
 
@@ -296,7 +299,7 @@ $(document).ready(function () {
                 url:route('chat.get.messages'),
                 method: "GET",
                 data: {
-                    message_id: messageId
+                    message_id: messageId,
                 },
                 success: function (response) {
                     $('.message-user').html(response.reply)
@@ -311,30 +314,52 @@ $(document).ready(function () {
         refreshInterval = setInterval(getMessages, 5000);
     })
 
-    $(document).on('click', '.send-message' , function (){
+    $(document).on('click' , '.get-user-chat' , function (){
+
+        let chatId = $(this).data('id');
+        function getUserMessages(){
+            $.ajax({
+                url:route('get.user.messages'),
+                method: "GET",
+                data: {
+                    chat_id: chatId,
+                },
+                success: function (response) {
+                    $('.message-user-data').html(response.html)
+                }
+            });
+        }
+        getUserMessages();
+        if(refreshInterval){
+            clearInterval(refreshInterval);
+        }
+        refreshInterval = setInterval(getUserMessages, 5000);
+    });
+
+    $(document).on('click', '.send-message' , function (e){
         // let messageId = $('.message-header').find('.message-header-user').data('id');
         // console.log( $('.message-header').find('.message-header-user'))
         // let message = $(this).parents('#messageSend').find('.message-text').val();
-
+        e.preventDefault()
+        let myForm = $('#chatFormAdmin')[0];
+        let formData = new FormData(myForm);
         $.ajax({
             url: route('chat.store'),
             method: "post",
-            data: {
-                message_id : messageId,
-                message : message,
-                _token: $('meta[name="csrf-token"]').attr('content'),
-            },
+            data: formData,
+            contentType: false,
+            processData: false,
             success: function (response) {
                 let align;
-                if(response.message_user.admin_id == response.auth_id || response.send_by_admin == 1){
-                    align = 'justify-content-end';
-                }
-                else {
-                    align = 'justify-content-start';
-                }
+                // if(response.message_user.admin_id == response.auth_id || response.send_by_admin == 1){
+                //     align = 'justify-content-end';
+                // }
+                // else {
+                //     align = 'justify-content-start';
+                // }
                 let reply = `
                                 <div class="d-flex ${align}">
-                                    <div class="message message-${response.message_reply_id}" data-message-id="${response.message_user.id}" data-message-reply-id="${response.message_reply_id}" data-message="${response.message}" data-send-by-admin="${response.send_by_admin}">
+                                    <div class="message message-${response.chat_message_id}" data-message-id="${response.chat_message_id}"  data-message="${response.message}" data-user-type="${response.user_type}">
                                         <small>${response.created_at}</small>
                                         <div class="d-flex">
                                             <p class="one-message">${response.message}</p>
@@ -346,12 +371,12 @@ $(document).ready(function () {
                                                 </button>
                                                 <ul class="dropdown-menu" style="top: 3px; left: -98px;">
                                                        <li class="mb-2">
-                                                          <input type="hidden" name="edit_message" value="${response.message_reply_id}">
-                                                          <input type="hidden" name="message_id" value="${response.message_user.id}">
-                                                          <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.message_reply_id}"> Edit </span>
+                                                          <input type="hidden" name="edit_message" value="${response.chat_message_id}">
+                                                          <input type="hidden" name="message_id" value="${response.chat_id}">
+                                                          <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.chat_message_id}"> Edit </span>
                                                       </li>
                                                      <li>
-                                                        <span class="delete-btn dropdown-item" data-id="${response.message_reply_id}">Delete</span>
+                                                        <span class="delete-btn dropdown-item" data-id="${response.chat_message_id}">Delete</span>
                                                      </li>
                                                 </ul>
                                            </div>
@@ -366,18 +391,31 @@ $(document).ready(function () {
     });
 
     $(document).on('click' , '.edit-btn' , function (){
-        let message = $(this).data('message');
+        let  message = '';
+        // if($(this).data('message')){
+             message = $(this).data('message');
+        // }
+        // else{
+        //      message = $(this).data('image');
+        // }
         let messageId = $(this).data('id');
         $('#messageSend').find('.btn').removeClass('send-message');
         $('#messageSend').find('.btn').text('Update');
         $('#messageSend').find('.btn').addClass('update-message')
         $('#messageSend').find('.message-text').val(message)
         $('#messageSend').find('.update-message').data('id' ,messageId )
+
+
+        $('#messageDetails').find('.btn').removeClass('send-message-user-side');
+        $('#messageDetails').find('.btn').text('Update');
+        $('#messageDetails').find('.btn').addClass('update-message')
+        $('#messageDetails').find('.message-text').val(message)
+        $('#messageDetails').find('.update-message').data('id' ,messageId )
     });
 
     $(document).on('click' , '.update-message' ,function (){
         let messageId = $(this).data('id');
-        let message = $(this).parents('#messageSend').find('.message-text').val();
+        let message = $('.message-text').val();
         $.ajax({
             url: route('chat.update' , messageId),
             method: "PUT",
@@ -389,6 +427,7 @@ $(document).ready(function () {
             success: function (response) {
                 $(`.message-${response.messageId}`).find('.one-message').text(response.message);
                 $(`.message-${response.messageId}`).data('message' , response.message);
+                $('.single-message-div-'+response.messageId).find('.one-message').text(response.message);
                 $('.message-text').val('');
             }
         });
@@ -396,17 +435,82 @@ $(document).ready(function () {
 
     $(document).on('click' , '.delete-btn' , function (){
         let deleteId = $(this).data('id');
+         Swal.fire({
+            title: 'warning!',
+            text: 'Are you sure delete message',
+            icon: 'error',
+            confirmButtonText: 'Delete'
+        }).then((result) => {
+             if(result.isConfirmed){
+                 $.ajax({
+                     url: route('chat.destroy' , deleteId),
+                     method: "DELETE",
+                     data: {
+                         delete_id: deleteId,
+                     },
+                     success: function (response) {
+                         $('.message-'+deleteId).remove();
+                         $('.single-message-div-'+deleteId).remove();
+                     }
+                 });
+             }
+        })
+
+    });
+
+    $(document).on('click' , '.delete-chat-btn' , function (){
+        let deleteId = $(this).data('id');
+        Swal.fire({
+            title: 'warning!',
+            text: 'Are you sure delete chat',
+            icon: 'error',
+            confirmButtonText: 'Delete'
+        }).then((result) => {
+            console.log(result)
+            if(result.isConfirmed){
+                $.ajax({
+                    url: route('chat.delete.message'),
+                    method: "GET",
+                    data: {
+                        delete_id: deleteId,
+                    },
+                    success: function (response) {
+
+                    }
+                });
+            }
+        })
+    });
+
+    $(document).on('click' , '.archive-chat' , function (){
+
+        $('.active-chat').removeClass('text-cyan-500 border-bottom border-info')
+        $(this).addClass('text-cyan-500 border-bottom border-info')
+
         $.ajax({
-            url: route('chat.destroy' , deleteId),
-            method: "DELETE",
-            data: {
-                delete_id: deleteId,
-            },
+            url: route('get.archive.chat'),
+            method: "GET",
             success: function (response) {
-                $(`.message-${deleteId}`).remove();
+                $('.message-history').text(null);
+                $('.message-history').append(response.chats)
             }
         });
-    });
+    })
+
+    $(document).on('click' , '.active-chat' , function (){
+
+        $('.archive-chat').removeClass('text-cyan-500 border-bottom border-info')
+        $(this).addClass('text-cyan-500 border-bottom border-info')
+
+        $.ajax({
+            url: route('get.active.chat'),
+            method: "GET",
+            success: function (response) {
+                $('.message-history').text(null);
+                $('.message-history').append(response.chats)
+            }
+        });
+    })
 
 
     $(document).on('click' , '.send-message-user-side' , function (e){
@@ -420,23 +524,89 @@ $(document).ready(function () {
             contentType: false,
             processData: false,
             success: function (response) {
-            let html = `
-                    <div>
-                        <div class="d-flex gap-1 align-items-end">
-                            <div class="full-name">you</div>
-                                <div class="time text-secondary pt-1" style="font-size: 13px">${response.created_at}</div>
-                            <div class="messages w-50 ms-4 py-2 rounded" style="background-color: darkgray ">
-                               <div class="ps-2">${response.message}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-            $('.message-chat').append(html);
-
+                let html = `
+                        <div class="d-flex flex-column one-message mb-2 single-message-div-${response.chat_message_id} align-items-end">
+                                            <div class="d-flex gap-1 flex-row-reverse">
+                                                <div class="full-name">you</div>
+                                                <div class="time text-secondary pt-1" style="font-size: 13px" >${response.created_at}</div>
+                                            </div>
+                                            <div class="messages w-50 ms-4 py-2 rounded d-flex" style="background-color: lightgray; ">
+                                                <div class="ps-2 text-align-start one-message">${response.message}</div>
+                                             ${response.image ? `<img src="${response.image}" alt="User Image" class="img-thumbnail mt-2" style="max-width: 150px;">` : ''}
+                                                <div class="dropdown">
+                                                    <button class="dropdown-toggle '.$updateOrDelete.'"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                                        </svg>
+                                                    </button>
+                                                    <ul class="dropdown-menu" style="top: 3px; left: -98px;">
+                                                        <li class="mb-2">
+                                                            <input type="hidden" name="edit_message" value="${response.chat_message_id}">
+                                                            <input type="hidden" name="message_id" value="${response.chat_id}">
+                                                            <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.chat_message_id}"> Edit </span>
+                                                        </li>
+                                                        <li>
+                                                            <span class="delete-btn dropdown-item '.$delete.'" data-id="${response.chat_message_id}">Delete</span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                    `;
+                $('.message-chat').append(html);
+                $('.message-input').val(null);
             }
         })
     })
+
+    $(document).on('click' , '.archive-chat-btn ' , function (){
+        let chatId = $(this).data('id');
+        Swal.fire({
+            title: 'warning!',
+            text: 'Are you sure move to archive chat',
+            icon: 'warning',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: route('update.status.chat'),
+                    method: "GET",
+                    data: {
+                        chat_id: chatId,
+                        status: 1
+                    },
+                    success: function (response) {
+                        $('.chat-user-' + chatId).remove();
+                    }
+                });
+            }
+        });
+    });
+
+    $(document).on('click' , '.unArchive-chat-btn ' , function (){
+        let chatId = $(this).data('id');
+        Swal.fire({
+            title: 'warning!',
+            text: 'Are you sure move to active chat',
+            icon: 'warning',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: route('update.status.chat'),
+                    method: "GET",
+                    data: {
+                        chat_id: chatId,
+                        status: 0
+                    },
+                    success: function (response) {
+                        $('.chat-user-' + chatId).remove();
+                    }
+                });
+            }
+        });
+    });
+
 
 
     //permission in index

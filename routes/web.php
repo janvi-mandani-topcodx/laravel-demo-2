@@ -57,7 +57,12 @@ Route::middleware(['emailVerification' , 'authLogin'])->group(function (){
     Route::get('select/single/product', [OrderController::class, 'selectSingleProduct'])->name('select.single.product');
     Route::get('/message-store' , [ChatController::class , 'messageStore'])->name('message.store');
     Route::post('/send-message/admin' , [ChatController::class , 'sendMessageAdminAgent'])->name('send.message.admin');
+    Route::get('/delete/chat' , [ChatController::class , 'chatDelete'])->name('chat.delete.message');
+    Route::get('/get/archive/chat' , [ChatController::class , 'getArchiveChat'])->name('get.archive.chat');
+    Route::get('/get/active/chat' , [ChatController::class , 'getActiveChat'])->name('get.active.chat');
     Route::get('/message-get' , [ChatController::class , 'allMessageGet'])->name('chat.get.messages');
+    Route::get('/message-user-get' , [ChatController::class , 'allUserMessageGet'])->name('get.user.messages');
     Route::get('/search-user' , [ChatController::class , 'SearchUser'])->name('search.user');
+    Route::get('/update-status' , [ChatController::class , 'updateStatus'])->name('update.status.chat');
     Route::get('/logout' , [LoginController::class , 'logout'])->name('logout');
 });
