@@ -8,16 +8,80 @@ window.DataTable  =  DataTable;
 import 'jsrender';
 
 import Swal from 'sweetalert2'
+// import Echo from "laravel-echo";
 window.Swal  = Swal;
+
+//
+// import Echo from 'laravel-echo';
+//
+// import Pusher from 'pusher-js';
+// window.Pusher = Pusher;
+//
+// window.Echo = new Echo({
+//     broadcaster: 'reverb',
+//     key: import.meta.env.VITE_REVERB_APP_KEY,
+//     wsHost: import.meta.env.VITE_REVERB_HOST ?? window.location.hostname,
+//     // wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+//     // wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+//     wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
+//     wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
+//     // forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+//     forceTLS: false,
+//     enabledTransports: ['ws', 'wss'],
+// });
+//
+//
+// window.Echo.channel('chat-message')
+//     .listen('ChatEvent', (e) => {
+//         console.log(e);
+//     });
+//
+// window.Echo.connector.pusher.connection.bind('connected', function() {
+//     console.log('✅ Connected to Reverb successfully!');
+// });
+//
+// window.Echo.connector.pusher.connection.bind('error', function(err) {
+//     console.error('❌ WebSocket error', err);
+// });
+
+import Echo from 'laravel-echo';
+
+import Pusher from 'pusher-js';
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+    broadcaster: 'pusher',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    forceTLS: true
+});
+
+
+
+// window.Echo.channel('chat-message')
+//     .listen('ChatEvent', (e) => {
+//         console.log(e)
+//     });
 
 
 $(document).ready(function () {
+
+
+
 
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
+
+
+    // window.Echo.channel('chat-message')
+    //     .listen('ChatEvent', (e) => {
+    //         console.log(e)
+    //     });
+
+
 
     //cart
 
@@ -308,10 +372,10 @@ $(document).ready(function () {
             });
         }
         getMessages();
-        if(refreshInterval){
-            clearInterval(refreshInterval);
-        }
-        refreshInterval = setInterval(getMessages, 5000);
+        // if(refreshInterval){
+        //     clearInterval(refreshInterval);
+        // }
+        // refreshInterval = setInterval(getMessages, 5000);
     })
 
     $(document).on('click' , '.get-user-chat' , function (){
@@ -330,10 +394,10 @@ $(document).ready(function () {
             });
         }
         getUserMessages();
-        if(refreshInterval){
-            clearInterval(refreshInterval);
-        }
-        refreshInterval = setInterval(getUserMessages, 5000);
+        // if(refreshInterval){
+        //     clearInterval(refreshInterval);
+        // }
+        // refreshInterval = setInterval(getUserMessages, 5000);
     });
 
     $(document).on('click', '.send-message' , function (e){
@@ -350,46 +414,191 @@ $(document).ready(function () {
             contentType: false,
             processData: false,
             success: function (response) {
-                let align;
-                // if(response.message_user.admin_id == response.auth_id || response.send_by_admin == 1){
-                //     align = 'justify-content-end';
+                // let image;
+                // if(response.attachment){
+                //      image = `<img src="${response.attachment}" width="30" height="30">`
                 // }
-                // else {
-                //     align = 'justify-content-start';
+                // else{
+                //     image ='';
                 // }
-                let reply = `
-                                <div class="d-flex ${align}">
-                                    <div class="message message-${response.chat_message_id}" data-message-id="${response.chat_message_id}"  data-message="${response.message}" data-user-type="${response.user_type}">
-                                        <small>${response.created_at}</small>
+                let html = '';
+                if(Array.isArray(response.attachment)) {
+                    response.attachment.forEach(url => {
+                         html += `
                                         <div class="d-flex">
-                                            <p class="one-message">${response.message}</p>
-                                            <div class="dropdown" >
-                                                <button class="dropdown-toggle"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                       <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
-                                                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
-                                                       </svg>
-                                                </button>
-                                                <ul class="dropdown-menu" style="top: 3px; left: -98px;">
-                                                       <li class="mb-2">
-                                                          <input type="hidden" name="edit_message" value="${response.chat_message_id}">
-                                                          <input type="hidden" name="message_id" value="${response.chat_id}">
-                                                          <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.chat_message_id}"> Edit </span>
-                                                      </li>
-                                                     <li>
-                                                        <span class="delete-btn dropdown-item" data-id="${response.chat_message_id}">Delete</span>
-                                                     </li>
-                                                </ul>
-                                           </div>
+                                            <div class="message message-${response.chat_message_id}" data-message-id="${response.chat_message_id}"  data-message="${response.message}" data-user-type="${response.user_type}">
+                                                <div class="d-flex gap-1">
+                                                    <div class="full-name-show">
+                                                        <span style="font-size: 18px">you</span>
+                                                    </div>
+                                                    <small class="text-secondary mt-1" >${response.created_at}</small>
+                                                </div>
+                                                <div class="d-flex ms-4">
+                                                    <p class="one-message rounded" style=" background-color: beige ; height : 38px;">${response.message ?? ''}</p>
+                                                     <img src="${url}" width="30" height="30">
+                                                    <div class="dropdown" >
+                                                        <button class="dropdown-toggle"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                               <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                                                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                                               </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu" style="top: 3px; left: -98px;">
+                                                               <li class="mb-2">
+                                                                  <input type="hidden" name="edit_message" value="${response.chat_message_id}">
+                                                                  <input type="hidden" name="message_id" value="${response.chat_id}">
+                                                                  <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.chat_message_id}"> Edit </span>
+                                                              </li>
+                                                             <li>
+                                                                <span class="delete-btn dropdown-item" data-id="${response.chat_message_id}">Delete</span>
+                                                             </li>
+                                                        </ul>
+                                                   </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                `;
-                $('.message-user').append(reply)
-                $('.message-text').val('');
+                                        `;
+                    })
+                }
+                else{
+                    html += `
+                                        <div class="d-flex">
+                                            <div class="message message-${response.chat_message_id}" data-message-id="${response.chat_message_id}"  data-message="${response.message}" data-user-type="${response.user_type}">
+                                                <div class="d-flex gap-1">
+                                                    <div class="full-name-show">
+                                                        <span style="font-size: 18px">you</span>
+                                                    </div>
+                                                    <small class="text-secondary mt-1" >${response.created_at}</small>
+                                                </div>
+                                                <div class="d-flex ms-4">
+                                                    <p class="one-message rounded" style=" background-color: beige ; height : 38px;">${response.message}</p>
+                                                    <div class="dropdown" >
+                                                        <button class="dropdown-toggle"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                               <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                                                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                                               </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu" style="top: 3px; left: -98px;">
+                                                               <li class="mb-2">
+                                                                  <input type="hidden" name="edit_message" value="${response.chat_message_id}">
+                                                                  <input type="hidden" name="message_id" value="${response.chat_id}">
+                                                                  <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.chat_message_id}"> Edit </span>
+                                                              </li>
+                                                             <li>
+                                                                <span class="delete-btn dropdown-item" data-id="${response.chat_message_id}">Delete</span>
+                                                             </li>
+                                                        </ul>
+                                                   </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        `;
+                }
+
+                            $('.message-user').append(html)
+                            $('.message-text').val('');
             },
         });
+
     });
 
+    function getMessageUser(){
+            var pusher = new Pusher('69f055a289689430ef10', { cluster: 'ap2' });
+            var channel = pusher.subscribe('chat-message');
+
+            channel.bind('ChatEvent', function(data) {
+                console.log('Received data:', data);
+
+                console.log(data.imageUrls)
+
+                if(data.userType == 'admin' || data.userType == 'agent'){
+                    let html = '';
+                    if(Array.isArray(data.imageUrls)){
+                        data.imageUrls.forEach(url => {
+                            html += `<div class="d-flex flex-column single-message-div-${data.messageId}  mb-2 ">
+                                                    <div class="d-flex gap-1">
+                                                        <div class="image">
+                                                            <img src="${data.senderImage}" width="30" height="30" class="rounded">
+                                                        </div>
+                                                        <div class="full-name">${data.fullName}</div>
+                                                        <div class="time text-secondary pt-1" style="font-size: 13px" >${data.createdAt}</div>
+                                                    </div>
+                                                    <div class="messages w-50 ms-4 py-2 rounded d-flex" style="background-color: beige ">
+                                                        <div class="ps-2 text-align-start one-message">${data.message ?? ''}</div>
+                                                        <img src="${url}" class="message-image" style="max-width: 150px; margin-left: 5px;">
+                                                    </div>
+                                                </div>`;
+                        });
+                    }
+                    else{
+                        html += `
+                            <div class="d-flex flex-column single-message-div-${data.messageId}  mb-2 ">
+                                                    <div class="d-flex gap-1">
+                                                        <div class="image">
+                                                            <img src="${data.senderImage}" width="30" height="30" class="rounded">
+                                                        </div>
+                                                        <div class="full-name">${data.fullName}</div>
+                                                        <div class="time text-secondary pt-1" style="font-size: 13px" >${data.createdAt}</div>
+                                                    </div>
+                                                    <div class="messages w-50 ms-4 py-2 rounded d-flex" style="background-color: beige ">
+                                                        <div class="ps-2 text-align-start one-message">${data.message}</div>
+                                                    </div>
+                                                </div>
+                        `;
+                    }
+                    $('.message-user-data').append(html);
+                }
+                else if(data.userType == 'user'){
+                    let html = '';
+                        if(Array.isArray(data.imageUrls)){
+                        data.imageUrls.forEach(url => {
+                             html += `
+                                <div class="d-flex py-4 justify-content-end">
+                                <div class="message  message-${data.messageId}" data-message-id="${data.messageId}" data-message-reply-id="${data.messageId}" data-message="${data.message}" >
+
+                                    <div class="d-flex gap-1">
+                                        <div class="image">
+                                             <img src="${data.senderImage}" width="30" height="30" class="rounded">
+                                        </div>
+                                        <div class="full-name-show">
+                                            <span style="font-size: 18px">${data.fullName}</span>
+                                        </div>
+
+                                        <small class="text-secondary mt-1" >${data.createdAt}</small>
+                                    </div>
+                                   <div class="d-flex w-50 ms-4 py-2 my-1 rounded" >
+                                       <p class="one-message ps-1 rounded" style="background-color: lightgray  ; height : 38px;">${data.message ?? ''}</p>
+                                       <img src="${url}" class="message-image img-thumbnail mt-2" style="max-width: 90px;">
+                                   </div>
+                                </div>
+                            </div> `;
+                        })
+                    }
+                    else{
+                         html = `
+                                <div class="d-flex py-4 justify-content-end">
+                                <div class="message  message-${data.messageId}" data-message-id="${data.messageId}" data-message-reply-id="${data.messageId}" data-message="${data.message}" >
+
+                                    <div class="d-flex gap-1">
+                                        <div class="image">
+                                             <img src="${data.senderImage}" width="30" height="30" class="rounded">
+                                        </div>
+                                        <div class="full-name-show">
+                                            <span style="font-size: 18px">${data.fullName}</span>
+                                        </div>
+
+                                        <small class="text-secondary mt-1" >${data.createdAt}</small>
+                                    </div>
+                                   <div class="d-flex w-50 ms-4 py-2 my-1 rounded" >
+                                       <p class="one-message ps-1 rounded" style="background-color: lightgray  ; height : 38px;">${data.message}</p>
+                                   </div>
+                                </div>
+                            </div> `;
+                    }
+                    $('.message-user').append(html);
+                }
+            });
+    }
+    getMessageUser();
     $(document).on('click' , '.edit-btn' , function (){
         let  message = '';
         // if($(this).data('message')){
@@ -524,36 +733,72 @@ $(document).ready(function () {
             contentType: false,
             processData: false,
             success: function (response) {
-                let html = `
-                        <div class="d-flex flex-column one-message mb-2 single-message-div-${response.chat_message_id} align-items-end">
-                                            <div class="d-flex gap-1 flex-row-reverse">
-                                                <div class="full-name">you</div>
-                                                <div class="time text-secondary pt-1" style="font-size: 13px" >${response.created_at}</div>
-                                            </div>
-                                            <div class="messages w-50 ms-4 py-2 rounded d-flex" style="background-color: lightgray; ">
-                                                <div class="ps-2 text-align-start one-message">${response.message}</div>
-                                             ${response.image ? `<img src="${response.image}" alt="User Image" class="img-thumbnail mt-2" style="max-width: 150px;">` : ''}
-                                                <div class="dropdown">
-                                                    <button class="dropdown-toggle '.$updateOrDelete.'"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                        <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
-                                                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
-                                                        </svg>
-                                                    </button>
-                                                    <ul class="dropdown-menu" style="top: 3px; left: -98px;">
-                                                        <li class="mb-2">
-                                                            <input type="hidden" name="edit_message" value="${response.chat_message_id}">
-                                                            <input type="hidden" name="message_id" value="${response.chat_id}">
-                                                            <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.chat_message_id}"> Edit </span>
-                                                        </li>
-                                                        <li>
-                                                            <span class="delete-btn dropdown-item '.$delete.'" data-id="${response.chat_message_id}">Delete</span>
-                                                        </li>
-                                                    </ul>
+                console.log(response.image)
+                let html = '';
+                if(Array.isArray(response.image)){
+                    response.image.forEach(url => {
+                        html += `
+                                <div class="d-flex flex-column one-message mb-2 single-message-div-${response.chat_message_id} align-items-end">
+                                                    <div class="d-flex gap-1 flex-row-reverse">
+                                                        <div class="full-name">you</div>
+                                                        <div class="time text-secondary pt-1" style="font-size: 13px" >${response.created_at}</div>
+                                                    </div>
+                                                    <div class="messages w-50 ms-4 py-2 rounded d-flex" style="background-color: lightgray; ">
+                                                        <div class="ps-2 text-align-start one-message">${response.message ?? ''}</div>
+                                                        <img src="${url}" class="img-thumbnail mt-2" style="max-width: 150px;">
+                                                        <div class="dropdown">
+                                                            <button class="dropdown-toggle '.$updateOrDelete.'"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                                                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                                                </svg>
+                                                            </button>
+                                                            <ul class="dropdown-menu" style="top: 3px; left: -98px;">
+                                                                <li class="mb-2">
+                                                                    <input type="hidden" name="edit_message" value="${response.chat_message_id}">
+                                                                    <input type="hidden" name="message_id" value="${response.chat_id}">
+                                                                    <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.chat_message_id}"> Edit </span>
+                                                                </li>
+                                                                <li>
+                                                                    <span class="delete-btn dropdown-item '.$delete.'" data-id="${response.chat_message_id}">Delete</span>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                    `;
-                $('.message-chat').append(html);
+                            `;
+                    })
+                }
+                else{
+                    html += `
+                                <div class="d-flex flex-column one-message mb-2 single-message-div-${response.chat_message_id} align-items-end">
+                                                    <div class="d-flex gap-1 flex-row-reverse">
+                                                        <div class="full-name">you</div>
+                                                        <div class="time text-secondary pt-1" style="font-size: 13px" >${response.created_at}</div>
+                                                    </div>
+                                                    <div class="messages w-50 ms-4 py-2 rounded d-flex" style="background-color: lightgray; ">
+                                                        <div class="ps-2 text-align-start one-message">${response.message}</div>
+                                                        <div class="dropdown">
+                                                            <button class="dropdown-toggle '.$updateOrDelete.'"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                                                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                                                                </svg>
+                                                            </button>
+                                                            <ul class="dropdown-menu" style="top: 3px; left: -98px;">
+                                                                <li class="mb-2">
+                                                                    <input type="hidden" name="edit_message" value="${response.chat_message_id}">
+                                                                    <input type="hidden" name="message_id" value="${response.chat_id}">
+                                                                    <span  class="edit-btn dropdown-item m-0" data-message = "${response.message}" data-id="${response.chat_message_id}"> Edit </span>
+                                                                </li>
+                                                                <li>
+                                                                    <span class="delete-btn dropdown-item '.$delete.'" data-id="${response.chat_message_id}">Delete</span>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                            `;
+                }
+                $('.message-user-data').append(html);
                 $('.message-input').val(null);
             }
         })

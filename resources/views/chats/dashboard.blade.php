@@ -22,15 +22,15 @@
                                         <div class="message-history">
                                             @if(auth()->user()->hasPermissionTo('show_chat_user'))
                                                 @foreach($messages as $message)
-                                                    <div class="{{$message->id}}pt-2 user-message-data border-bottom chat-user-{{$message->id}}" data-name="{{$message->user->full_name}}" data-message-id="{{$message->id}}" data-email="{{$message->user->email}}">
+                                                    <div class="pt-2 user-message-data border-bottom chat-user-{{$message->id}}" data-name="{{$message->user->full_name}}" data-message-id="{{$message->id}}" data-email="{{$message->user->email}}">
                                                         <div class="row">
-                                                            <div class="col-3">
+                                                            <div class="col-2">
                                                                 <img src="{{$message->user->image_url[0]}}" width="50" height="50" class="rounded-circle">
                                                             </div>
-                                                            <div class="col-4 d-flex flex-wrap" style="font-size: 17px">
-                                                                {{$message->user->full_name}}
-                                                                <p class="text-secondary">
-                                                                    {{$message->chatMessages->last()->attachment_name ?? $message->chatMessages->last()->message}}
+                                                            <div class="col-4 p-0" style="font-size: 17px">
+                                                                <p class="m-0">{{$message->user->full_name}}</p>
+                                                                <p class="text-secondary m-0">
+                                                                    {{$message->chatMessages->last()->message}}
                                                                 </p>
                                                             </div>
                                                             <div class="col text-secondary text-end">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ChatEvent;
 use App\Models\ChatMessage;
 use App\Models\Chat;
 use App\Models\Message;
@@ -113,6 +114,7 @@ class ChatController extends Controller
         $chatMessage = '';
         $chatUser = Chat::find($input['chat_id']);
         if ($media) {
+            $imageUrls = [];
             foreach ($media as $file) {
                 $chatMessage = ChatMessage::create([
                     'chat_id' => $input['chat_id'],
@@ -120,6 +122,7 @@ class ChatController extends Controller
                     'message' => $input['message'] ?? null,
                 ]);
                 $media = $chatMessage->addMedia($file)->toMediaCollection('chat');
+                $imageUrls[] = $media->getUrl();
 //                $chatMessage->update([
 //                    'attachment_name' => $media->file_name,
 //                    'attachment_url' => $media->getUrl(),
@@ -133,6 +136,17 @@ class ChatController extends Controller
                 'message' => $input['message'] ?? null,
             ]);
         }
+
+
+//        if ($chatMessage->image_url){
+//            foreach($chatMessage->image_url as $image){
+//                $imageUrl[] = $image;
+//            }
+//        }
+        event(new ChatEvent($chatMessage->message, $chatUser->user_id , $imageUrls , $chatMessage->created_at->diffForHumans() , auth()->user()->full_name , auth()->user()->image_url[0] ,  $chatMessage->id , $chatMessage->user_type));
+
+//        broadcast(new ChatEvent($chatMessage->message  ,  auth()->user()));
+
         return response()->json([
             'success' => true,
             'chat_message_id' => $chatMessage->id,
@@ -141,28 +155,20 @@ class ChatController extends Controller
             'user_type' => $chatMessage->user_type,
             'chat_id' => $chatUser->id,
             'auth_id' => auth()->id(),
+            'attachment_url' => $imageUrls,
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $input = $request->all();
@@ -179,9 +185,6 @@ class ChatController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $messageReply = ChatMessage::find($id);
@@ -246,7 +249,8 @@ class ChatController extends Controller
                 $align = $messageReply->user_type == 'user' ? 'justify-content-end' : 'justify-content-start';
                 $display = $messageReply->user_type == 'user' ? 'd-none' : '';
 
-                $image = $display ? '' : 'd-none';
+                $imageClass = $messageReply->user_type != 'user' ? 'd-none' : '';
+
                 $sender = User::role($messageReply->user_type)->first();
                 $name = $messageReply->user_type == 'user' ? $sender->full_name : 'you';
 
@@ -261,25 +265,29 @@ class ChatController extends Controller
                     }
                 }
                 $bgColor = $messageReply->user_type == 'user' ? 'lightgray' : 'beige';
+                $messageShow = $messageReply->message ? '<p class="one-message ps-1 rounded" style="background-color: '.$bgColor.' ; height : 38px;">' . $messageReply->message . '</p>' : '';
 
 
                 $reply .= '
-                    <div class="d-flex py-4 ' . $align . '">
+                    <div class="d-flex  ' . $align . '">
                         <div class="message  message-' . $messageReply->id . '" data-message-id="' . $message->id . '" data-message-reply-id="' . $messageReply->id . '" data-message="' . $messageReply->message . '" data-send-by-admin="' . $messageReply->send_by_admin . '">
 
                             <div class="d-flex gap-1">
-                                <div class="image rounded-circle '.$image.'">
+                                <div class="image rounded-circle '.$imageClass.'">
                                     <img src="'.$sender->image_url[0].'" class="rounded-circle" height="30" width="30">
                                 </div>
                                 <div class="full-name-show">
                                     <span style="font-size: 18px">'. $name .'</span>
                                 </div>
-
-                                <small class="text-secondary mt-1" >' . $messageReply->created_at->diffForHumans() . '</small>
+                                <p class="text-secondary mt-1" >' . $messageReply->created_at->diffForHumans() . '</p>
                             </div>
+                            '.($messageReply->message
+                                ? $imageShow
+                                : '').'
                            <div class="d-flex w-50 ms-4 py-2 my-1 rounded" >
-                               <p class="one-message ps-1 rounded" style="background-color: '.$bgColor.' ; height : 38px;">' . $messageReply->message . '</p>
-                               <div>'.$imageShow.'</div>
+                           '.($messageReply->message
+                                ? $messageShow
+                                : $imageShow).'
                                <div class="dropdown  ' . $display . '"" >
                                   <button class="dropdown-toggle '.$updateOrDelete.'"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                        <svg  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
@@ -316,8 +324,10 @@ class ChatController extends Controller
     {
         $input = $request->all();
         $media = $input['image'] ?? null;
+        $chat = Chat::find($input['chat_id']);
         $chatMessage = '';
         if ($media) {
+            $imageUrls = [];
             foreach ($media as $file) {
                 $chatMessage = ChatMessage::create([
                     'chat_id' => $input['chat_id'],
@@ -325,7 +335,7 @@ class ChatController extends Controller
                     'message' => $input['message'] ?? null,
                 ]);
                 $media = $chatMessage->addMedia($file)->toMediaCollection('chat');
-
+                $imageUrls[] = $media->getUrl();
 //                $chatMessage->update([
 //                    'attachment_name' => $media->file_name,
 //                    'attachment_url' => $media->getUrl(),
@@ -339,17 +349,20 @@ class ChatController extends Controller
                 'message' => $input['message'] ?? null,
             ]);
         }
-        $imageUrl = '';
-        if ($chatMessage->image_url){
-            foreach($chatMessage->image_url as $image){
-                $imageUrl = $image;
-            }
-        }
+
+//        $imageUrl = '';
+//        if ($chatMessage->image_url){
+//            foreach($chatMessage->image_url as $image){
+//                $imageUrl = $image;
+//            }
+//        }
+        event(new ChatEvent($chatMessage->message, auth()->id() , $imageUrls , $chatMessage->created_at->diffForHumans() , $chat->user->full_name , $chat->user->image_url[0] ,  $chatMessage->id , $chatMessage->user_type));
+
 
         return response()->json([
             'message' => $chatMessage->message,
             'created_at' => $chatMessage->created_at->diffForHumans(),
-            'image' => $imageUrl,
+            'image' => $imageUrls,
             'chat_message_id' => $chatMessage->id,
             'chat_id' => $chatMessage->chat_id,
         ]);
@@ -462,8 +475,7 @@ class ChatController extends Controller
         $input = $request->all();
         $chat = Chat::find($input['chat_id']);
         $html = '';
-        $html .= '
-                  <div class="message-chat message-' . $chat->id . '"  data-chat="' . $chat->id . '">';
+        $html .= '<div class="message-chat message-' . $chat->id . '"  data-chat="' . $chat->id . '">';
 
         foreach ($chat->chatMessages as $chatMessage){
             $sender = User::role($chatMessage->user_type)->first();
